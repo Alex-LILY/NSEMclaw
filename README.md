@@ -2,7 +2,9 @@
 
 > 下一代AI复合智能体架构
 
-![Banner](assets/banner.png)
+![Banner](https://raw.githubusercontent.com/Alex-LILY/NSEMclaw/main/assets/banner.png)
+
+![Web UI](https://raw.githubusercontent.com/Alex-LILY/NSEMclaw/main/assets/screenshot-ui.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/Version-2026.2.27-blue.svg)](https://github.com/Alex-LILY/NSEMclaw/releases)
