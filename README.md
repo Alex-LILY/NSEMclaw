@@ -271,13 +271,17 @@ cp nsemclaw.config.example.json nsemclaw.json
 pnpm start
 ```
 
-## 📚 文档
+## 🙏 致谢与参考
 
-- [📖 完整文档](https://docs.nsemclaw.ai)
-- [🧠 NSEM 2.0 认知核心](https://docs.nsemclaw.ai/cognitive-core)
+本项目基于以下优秀开源项目和技术：
+
+- [OpenClaw](https://github.com/nsemclaw/openclaw) - 原始框架
+- [MiniMax](https://platform.minimax.io) - AI 模型支持
+- [Maton](https://github.com/maton-ai/maton) - 邮件网关
+- [QMD](https://github.com/tobilu/qmd) - 向量记忆搜索
+- [BGE Embeddings](https://github.com/bgerp/bge-m3) - 向量嵌入模型
 
 ---
 
 <p align="center">
-  <strong>NSEM·瑶姬✨ - 下一代AI复合智能体架构</strong>
-</p>
+  <strong>NSEM·瑶姬✨ - 下一代AI复合智能体架构</p>
