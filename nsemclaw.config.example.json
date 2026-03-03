@@ -1,0 +1,83 @@
+{
+  "_comment": "Nsemclaw NSEM 认知核心配置示例 - 复制到 ~/.nsemclaw/config.json 使用",
+
+  "agents": {
+    "defaults": {
+      "_comment_memorySearch": "传统记忆系统配置",
+      "memorySearch": {
+        "enabled": true,
+        "provider": "local",
+        "local": {
+          "modelPath": "hf:ggml-org/embeddinggemma-300m-qat-q8_0-GGUF/embeddinggemma-300m-qat-Q8_0.gguf",
+          "modelCacheDir": "~/.nsemclaw/models"
+        }
+      },
+
+      "_comment_nsem": "NSEM 认知核心配置 - 自动根据资源模式加载模型",
+      "nsem": {
+        "_comment": "是否启用 NSEM 认知核心",
+        "enabled": true,
+
+        "_comment_resourceMode": "资源模式: minimal(极简)|balanced(平衡)|performance(性能)",
+        "resourceMode": "balanced",
+
+        "_comment_models": "指定加载哪些模型。系统根据 resourceMode 自动决策:",
+        "_comment_models_note": "- minimal:  只加载 embedding (~314MB)",
+        "_comment_models_note2": "- balanced: 加载 embedding + reranker (~314MB + ~610MB)",
+        "_comment_models_note3": "- performance: 加载全部三个模型 (~2.2GB)",
+        "models": ["embedding", "expansion", "reranker"],
+
+        "_comment_autoDownload": "模型缺失时是否自动下载",
+        "autoDownloadModels": true,
+
+        "_comment_evolution": "记忆进化间隔（分钟）",
+        "evolutionIntervalMinutes": 60,
+
+        "_comment_maxAtoms": "最大记忆原子数",
+        "maxAtoms": 50000,
+
+        "_comment_ingest": "是否自动摄入对话内容到记忆",
+        "ingestConversations": true
+      }
+    },
+
+    "_comment_agents": "针对特定 agent 的覆盖配置",
+    "minimal-agent": {
+      "_comment": "极简模式 agent - 只加载 embedding，禁用扩张和重排序",
+      "nsem": {
+        "enabled": true,
+        "resourceMode": "minimal",
+        "models": ["embedding"],
+        "maxAtoms": 10000
+      }
+    },
+
+    "coding-agent": {
+      "_comment": "代码助手 - 完整功能",
+      "nsem": {
+        "enabled": true,
+        "resourceMode": "performance",
+        "models": ["embedding", "expansion", "reranker"],
+        "maxAtoms": 100000,
+        "ingestConversations": true
+      }
+    },
+
+    "no-nsem-agent": {
+      "_comment": "禁用 NSEM，仅使用传统记忆系统",
+      "nsem": {
+        "enabled": false
+      }
+    }
+  },
+
+  "_comment_evolution_legacy": "兼容旧版 evolution 配置",
+  "evolution": {
+    "memory": {
+      "enabled": true,
+      "autoStart": true,
+      "evolutionInterval": 86400000,
+      "maxAtoms": 50000
+    }
+  }
+}

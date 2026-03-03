@@ -1,0 +1,14 @@
+{
+  "name": "@nsemclaw/acpx",
+  "version": "2026.2.27",
+  "description": "Nsemclaw ACP runtime backend via acpx",
+  "type": "module",
+  "dependencies": {
+    "acpx": "^0.1.13"
+  },
+  "nsemclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

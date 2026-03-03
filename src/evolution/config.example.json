@@ -1,0 +1,65 @@
+{
+  "_comment": "NSEM 配置示例 - 复制到 ~/.nsemclaw/config.json 中使用",
+
+  "agents": {
+    "defaults": {
+      "memorySearch": {
+        "enabled": true,
+        "sources": ["memory", "sessions"]
+      },
+      "nsem": {
+        "_comment": "Neuro-Symbolic Evolutionary Memory 配置",
+        "enabled": true,
+        "neuralSearchWeight": 0.7,
+        "traditionalSearchWeight": 0.3,
+        "autoEvolveIntervalMinutes": 60,
+        "ingestConversations": true,
+        "conversationIngest": {
+          "roles": ["user", "assistant"],
+          "minLength": 20,
+          "batchSize": 5
+        },
+        "resultEnhancement": {
+          "includeEmergentRelations": true,
+          "includeFieldContext": true,
+          "associationDepth": 2
+        }
+      }
+    },
+
+    "my-coding-agent": {
+      "nsem": {
+        "enabled": true,
+        "neuralSearchWeight": 0.8,
+        "ingestConversations": true,
+        "conversationIngest": {
+          "roles": ["user", "assistant"],
+          "minLength": 50,
+          "batchSize": 3
+        }
+      }
+    },
+
+    "minimal-agent": {
+      "nsem": {
+        "enabled": false
+      }
+    }
+  },
+
+  "evolution": {
+    "memory": {
+      "_comment": "底层NSEM生态配置",
+      "enabled": true,
+      "autoStart": true,
+      "evolutionInterval": 86400000,
+      "syncWithMarkdown": true,
+      "maxAtoms": 100000,
+      "compression": {
+        "enabled": true,
+        "triggerAtomCount": 1000,
+        "minAgeDays": 7
+      }
+    }
+  }
+}

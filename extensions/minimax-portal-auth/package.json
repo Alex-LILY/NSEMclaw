@@ -1,0 +1,12 @@
+{
+  "name": "@nsemclaw/minimax-portal-auth",
+  "version": "2026.2.27",
+  "private": true,
+  "description": "Nsemclaw MiniMax Portal OAuth provider plugin",
+  "type": "module",
+  "nsemclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

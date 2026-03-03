@@ -1,0 +1,105 @@
+{
+  "_comment": "Nsemclaw 主配置文件 - 放置于 ~/.nsemclaw/config.json",
+
+  "gateway": {
+    "_comment": "网关启动策略配置",
+    "startup": {
+      "_comment": "启动时自动检测并决策模型加载策略",
+      "autoDetectResources": true,
+      "memoryThresholds": {
+        "minimal": { "max": 8192, "models": ["embedding"], "gpu": false },
+        "balanced": { "min": 8192, "max": 32768, "models": ["embedding", "reranker"], "gpu": true },
+        "performance": { "min": 32768, "models": ["embedding", "expansion", "reranker"], "gpu": true }
+      }
+    }
+  },
+
+  "agents": {
+    "defaults": {
+      "_comment": "默认 agent 配置 - 会被具体 agent 配置覆盖",
+
+      "memorySearch": {
+        "enabled": true,
+        "provider": "local",
+        "local": {
+          "modelPath": "hf:ggml-org/embeddinggemma-300m-qat-q8_0-GGUF/embeddinggemma-300m-qat-Q8_0.gguf",
+          "modelCacheDir": "~/.nsemclaw/models"
+        }
+      },
+
+      "nsem": {
+        "enabled": true,
+        "_comment_resourceMode": "资源模式：minimal|balanced|performance，auto 表示由网关自动决策",
+        "resourceMode": "auto",
+
+        "_comment_models": "要加载的模型列表，空数组时由网关根据 resourceMode 自动决策",
+        "models": [],
+
+        "_comment_models_auto": "自动决策规则：",
+        "_comment_auto_minimal": "  - 内存 < 8GB: 只加载 embedding (~314MB)",
+        "_comment_auto_balanced": "  - 内存 8-32GB: 加载 embedding + reranker (~924MB)",
+        "_comment_auto_performance": "  - 内存 > 32GB: 加载全部三个 (~2.2GB)",
+
+        "autoDownloadModels": true,
+        "evolutionIntervalMinutes": 60,
+        "maxAtoms": 50000,
+        "ingestConversations": true
+      }
+    },
+
+    "main": {
+      "_comment": "主 agent - 使用性能模式（大内存）",
+      "nsem": {
+        "resourceMode": "performance",
+        "models": ["embedding", "expansion", "reranker"]
+      }
+    },
+
+    "worker": {
+      "_comment": "工作 agent - 平衡模式",
+      "nsem": {
+        "resourceMode": "balanced",
+        "models": ["embedding", "reranker"]
+      }
+    },
+
+    "minimal": {
+      "_comment": "极简 agent - 仅嵌入（小内存/边缘设备）",
+      "nsem": {
+        "resourceMode": "minimal",
+        "models": ["embedding"]
+      }
+    }
+  },
+
+  "models": {
+    "_comment": "模型下载源配置",
+    "baseUrl": "https://github.com/Alex-LILY/alex-lily-profile/releases/download/123",
+    "embedding": {
+      "name": "hf_ggml-org_embeddinggemma-300M-Q8_0.gguf",
+      "size": 329000000,
+      "required": true
+    },
+    "expansion": {
+      "name": "hf_tobil_qmd-query-expansion-1.7B-q4_k_m.gguf",
+      "size": 1258000000,
+      "required": false
+    },
+    "reranker": {
+      "name": "hf_ggml-org_qwen3-reranker-0.6b-q8_0.gguf",
+      "size": 639000000,
+      "required": false
+    }
+  },
+
+  "cognitiveCore": {
+    "_comment": "认知核心全局配置",
+    "autoStart": true,
+    "fallbackToTraditional": true,
+    "hybridSearch": {
+      "enabled": true,
+      "nsemWeight": 1.0,
+      "traditionalWeight": 0.9
+    }
+  }
+}

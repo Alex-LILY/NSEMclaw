@@ -1,0 +1,537 @@
+/**
+ * 高性能向量存储系统
+ * 
+ * 特性：
+ * 1. 向量持久化到 SQLite
+ * 2. 内存-磁盘分层存储（热/温/冷）
+ * 3. 向量压缩（Float32 -> Float16）
+ * 4. 按需动态加载
+ * 5. 适配 128GB 内存 + 1TB 磁盘
+ */
+
+import Database from "better-sqlite3";
+import fs from "node:fs";
+import path from "node:path";
+import { homedir } from "node:os";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+import type { Vector } from "../types/index.js";
+
+const log = createSubsystemLogger("vector-storage");
+
+// ============================================================================
+// 类型定义
+// ============================================================================
+
+export interface VectorStorageConfig {
+  /** 存储目录 */
+  baseDir: string;
+  /** 数据库名称 */
+  dbName: string;
+  /** 向量维度 */
+  vectorDim: number;
+  /** 是否启用 WAL 模式 */
+  enableWAL: boolean;
+  /** 压缩类型 */
+  compression: "none" | "float16" | "int8";
+  /** 热数据缓存大小 */
+  hotCacheSize: number;
+  /** 温数据缓存大小 */
+  warmCacheSize: number;
+}
+
+export interface StoredVector {
+  id: string;
+  vector: Vector;
+  accessCount: number;
+  lastAccessed: number;
+  createdAt: number;
+  importance: number;
+  tier: "hot" | "warm" | "cold";
+}
+
+export interface VectorSearchResult {
+  id: string;
+  similarity: number;
+  vector: Vector;
+  metadata?: Record<string, unknown>;
+}
+
+// ============================================================================
+// 向量压缩工具
+// ============================================================================
+
+/**
+ * Float32 向量压缩为 Float16 (节省 50% 空间)
+ */
+export function compressVectorToFloat16(vector: Vector): Buffer {
+  const buffer = Buffer.alloc(vector.length * 2);
+  for (let i = 0; i < vector.length; i++) {
+    const value = vector[i];
+    const view = new DataView(buffer.buffer, i * 2);
+    const sign = value < 0 ? 1 : 0;
+    const abs = Math.abs(value);
+    let exponent = Math.floor(Math.log2(abs));
+    let mantissa = abs / Math.pow(2, exponent) - 1;
+    
+    if (exponent < -14) {
+      mantissa = abs / Math.pow(2, -14);
+      exponent = -15;
+    }
+    
+    const biasedExp = exponent + 15;
+    const half = (sign << 15) | ((biasedExp & 0x1F) << 10) | ((mantissa * 1024) & 0x3FF);
+    view.setUint16(0, half, true);
+  }
+  return buffer;
+}
+
+/**
+ * Float16 解压为 Float32
+ */
+export function decompressVectorFromFloat16(buffer: Buffer, dim: number): Vector {
+  const vector: Vector = new Array(dim);
+  for (let i = 0; i < dim; i++) {
+    const view = new DataView(buffer.buffer, i * 2);
+    const half = view.getUint16(0, true);
+    
+    const sign = (half >> 15) & 1;
+    const exponent = ((half >> 10) & 0x1F) - 15;
+    const mantissa = (half & 0x3FF) / 1024;
+    
+    let value: number;
+    if (exponent === -15) {
+      value = Math.pow(2, -14) * mantissa;
+    } else if (exponent === 16) {
+      value = mantissa === 0 ? Infinity : NaN;
+    } else {
+      value = Math.pow(2, exponent) * (1 + mantissa);
+    }
+    
+    vector[i] = sign === 1 ? -value : value;
+  }
+  return vector;
+}
+
+/**
+ * 向量量化压缩 (float32 -> int8)
+ */
+export function quantizeVector(vector: Vector): { data: Buffer; min: number; max: number } {
+  const min = Math.min(...vector);
+  const max = Math.max(...vector);
+  const range = max - min || 1;
+  
+  const buffer = Buffer.alloc(vector.length);
+  for (let i = 0; i < vector.length; i++) {
+    const normalized = (vector[i] - min) / range;
+    buffer[i] = Math.round(normalized * 255);
+  }
+  
+  return { data: buffer, min, max };
+}
+
+/**
+ * 反量化向量
+ */
+export function dequantizeVector(buffer: Buffer, min: number, max: number): Vector {
+  const range = max - min;
+  const vector: Vector = new Array(buffer.length);
+  for (let i = 0; i < buffer.length; i++) {
+    vector[i] = min + (buffer[i] / 255) * range;
+  }
+  return vector;
+}
+
+// ============================================================================
+// 高性能向量存储
+// ============================================================================
+
+const VECTOR_TABLE_SCHEMA = `
+-- 向量主表
+CREATE TABLE IF NOT EXISTS vectors (
+  id TEXT PRIMARY KEY,
+  vector_data BLOB NOT NULL,
+  vector_dim INTEGER NOT NULL,
+  compression_type TEXT DEFAULT 'float16',
+  access_count INTEGER DEFAULT 0,
+  last_accessed INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  importance REAL DEFAULT 0.5,
+  tier TEXT DEFAULT 'cold',
+  min_val REAL,
+  max_val REAL
+);
+
+-- 向量元数据表
+CREATE TABLE IF NOT EXISTS vector_metadata (
+  vector_id TEXT PRIMARY KEY,
+  content TEXT,
+  content_type TEXT,
+  source_file TEXT,
+  agent_id TEXT,
+  tags TEXT,
+  FOREIGN KEY (vector_id) REFERENCES vectors(id) ON DELETE CASCADE
+);
+
+-- 索引
+CREATE INDEX IF NOT EXISTS idx_vectors_tier ON vectors(tier);
+CREATE INDEX IF NOT EXISTS idx_vectors_last_accessed ON vectors(last_accessed);
+CREATE INDEX IF NOT EXISTS idx_vectors_importance ON vectors(importance);
+CREATE INDEX IF NOT EXISTS idx_vectors_agent ON vector_metadata(agent_id);
+`;
+
+export class VectorStorage {
+  private db: Database.Database;
+  private config: VectorStorageConfig;
+  private hotCache: Map<string, StoredVector>;
+  private warmCache: Map<string, StoredVector>;
+  
+  private stats = {
+    cacheHits: 0,
+    cacheMisses: 0,
+    diskReads: 0,
+    diskWrites: 0,
+  };
+  
+  private vectorDim: number;
+
+  constructor(config: Partial<VectorStorageConfig> = {}) {
+    this.config = {
+      baseDir: config.baseDir ?? path.join(homedir(), ".nsemclaw", "vector-storage"),
+      dbName: config.dbName ?? "vectors.db",
+      vectorDim: config.vectorDim ?? 384,
+      enableWAL: config.enableWAL ?? true,
+      compression: config.compression ?? "float16",
+      hotCacheSize: config.hotCacheSize ?? 100000,
+      warmCacheSize: config.warmCacheSize ?? 500000,
+    };
+    
+    this.vectorDim = this.config.vectorDim;
+    this.hotCache = new Map();
+    this.warmCache = new Map();
+    this.db = this.initDatabase();
+    
+    log("info", `VectorStorage initialized`);
+    log("info", `  Base dir: ${this.config.baseDir}`);
+    log("info", `  Compression: ${this.config.compression}`);
+    log("info", `  Hot cache: ${this.config.hotCacheSize}`);
+    log("info", `  Warm cache: ${this.config.warmCacheSize}`);
+  }
+  
+  private initDatabase(): Database.Database {
+    fs.mkdirSync(this.config.baseDir, { recursive: true });
+    const dbPath = path.join(this.config.baseDir, this.config.dbName);
+    const db = new Database(dbPath);
+    
+    if (this.config.enableWAL) {
+      db.pragma("journal_mode = WAL");
+    }
+    
+    db.exec(VECTOR_TABLE_SCHEMA);
+    return db;
+  }
+  
+  store(id: string, vector: Vector, metadata?: {
+    content?: string;
+    contentType?: string;
+    importance?: number;
+    agentId?: string;
+    tags?: string[];
+  }): void {
+    const now = Date.now();
+    const { data, compressionType, min, max } = this.compressVector(vector);
+    
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO vectors 
+      (id, vector_data, vector_dim, compression_type, access_count, last_accessed, created_at, importance, tier, min_val, max_val)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    stmt.run(
+      id,
+      data,
+      vector.length,
+      compressionType,
+      0,
+      now,
+      now,
+      metadata?.importance ?? 0.5,
+      "cold",
+      min ?? null,
+      max ?? null
+    );
+    
+    if (metadata) {
+      const metaStmt = this.db.prepare(`
+        INSERT OR REPLACE INTO vector_metadata 
+        (vector_id, content, content_type, agent_id, tags)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+      metaStmt.run(
+        id,
+        metadata.content ?? null,
+        metadata.contentType ?? null,
+        metadata.agentId ?? null,
+        metadata.tags ? JSON.stringify(metadata.tags) : null
+      );
+    }
+    
+    this.stats.diskWrites++;
+    
+    this.putToCache({
+      id,
+      vector,
+      accessCount: 0,
+      lastAccessed: now,
+      createdAt: now,
+      importance: metadata?.importance ?? 0.5,
+      tier: "hot",
+    });
+  }
+  
+  get(id: string): StoredVector | null {
+    const hot = this.hotCache.get(id);
+    if (hot) {
+      this.stats.cacheHits++;
+      hot.accessCount++;
+      hot.lastAccessed = Date.now();
+      return hot;
+    }
+    
+    const warm = this.warmCache.get(id);
+    if (warm) {
+      this.stats.cacheHits++;
+      this.promoteToHot(warm);
+      return warm;
+    }
+    
+    const fromDisk = this.loadFromDisk(id);
+    if (fromDisk) {
+      this.stats.cacheMisses++;
+      this.putToCache(fromDisk);
+      return fromDisk;
+    }
+    
+    return null;
+  }
+  
+  search(queryVector: Vector, options?: {
+    topK?: number;
+    minSimilarity?: number;
+  }): VectorSearchResult[] {
+    const { topK = 10, minSimilarity = 0.5 } = options ?? {};
+    const candidates: VectorSearchResult[] = [];
+    
+    for (const vec of this.hotCache.values()) {
+      const sim = this.cosineSimilarity(queryVector, vec.vector);
+      if (sim >= minSimilarity) {
+        candidates.push({ id: vec.id, similarity: sim, vector: vec.vector });
+      }
+    }
+    
+    for (const vec of this.warmCache.values()) {
+      const sim = this.cosineSimilarity(queryVector, vec.vector);
+      if (sim >= minSimilarity) {
+        candidates.push({ id: vec.id, similarity: sim, vector: vec.vector });
+      }
+    }
+    
+    if (candidates.length < topK * 2) {
+      const diskResults = this.searchFromDisk(queryVector, topK * 3, minSimilarity);
+      for (const r of diskResults) {
+        const stored = this.get(r.id);
+        if (stored) {
+          candidates.push({ ...r, vector: stored.vector });
+        }
+      }
+    }
+    
+    candidates.sort((a, b) => b.similarity - a.similarity);
+    return candidates.slice(0, topK);
+  }
+  
+  private putToCache(vec: StoredVector): void {
+    if (this.hotCache.size < this.config.hotCacheSize) {
+      this.hotCache.set(vec.id, vec);
+      vec.tier = "hot";
+    } else if (this.warmCache.size < this.config.warmCacheSize) {
+      this.evictFromHotCache();
+      this.hotCache.set(vec.id, vec);
+      vec.tier = "hot";
+    } else {
+      this.evictFromWarmCache();
+      this.warmCache.set(vec.id, vec);
+      vec.tier = "warm";
+    }
+  }
+  
+  private promoteToHot(vec: StoredVector): void {
+    this.warmCache.delete(vec.id);
+    if (this.hotCache.size >= this.config.hotCacheSize) {
+      this.evictFromHotCache();
+    }
+    this.hotCache.set(vec.id, vec);
+    vec.tier = "hot";
+  }
+  
+  private evictFromHotCache(): void {
+    let oldest: { id: string; time: number } | null = null;
+    for (const [id, vec] of this.hotCache) {
+      if (!oldest || vec.lastAccessed < oldest.time) {
+        oldest = { id, time: vec.lastAccessed };
+      }
+    }
+    
+    if (oldest) {
+      const vec = this.hotCache.get(oldest.id)!;
+      this.hotCache.delete(oldest.id);
+      if (this.warmCache.size >= this.config.warmCacheSize) {
+        this.evictFromWarmCache();
+      }
+      vec.tier = "warm";
+      this.warmCache.set(oldest.id, vec);
+      this.updateTierInDB(oldest.id, "warm");
+    }
+  }
+  
+  private evictFromWarmCache(): void {
+    let oldest: { id: string; time: number } | null = null;
+    for (const [id, vec] of this.warmCache) {
+      if (!oldest || vec.lastAccessed < oldest.time) {
+        oldest = { id, time: vec.lastAccessed };
+      }
+    }
+    if (oldest) {
+      this.warmCache.delete(oldest.id);
+      this.updateTierInDB(oldest.id, "cold");
+    }
+  }
+  
+  private updateTierInDB(id: string, tier: string): void {
+    const stmt = this.db.prepare(`UPDATE vectors SET tier = ? WHERE id = ?`);
+    stmt.run(tier, id);
+  }
+  
+  private loadFromDisk(id: string): StoredVector | null {
+    const row = this.db.prepare(`SELECT * FROM vectors WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
+    if (!row) return null;
+    
+    this.stats.diskReads++;
+    
+    const vector = this.decompressVector(
+      row.vector_data as Buffer,
+      row.compression_type as string,
+      row.min_val as number | undefined,
+      row.max_val as number | undefined
+    );
+    
+    this.db.prepare(`UPDATE vectors SET access_count = access_count + 1, last_accessed = ? WHERE id = ?`).run(Date.now(), id);
+    
+    return {
+      id: row.id as string,
+      vector,
+      accessCount: (row.access_count as number) + 1,
+      lastAccessed: Date.now(),
+      createdAt: row.created_at as number,
+      importance: row.importance as number,
+      tier: "cold",
+    };
+  }
+  
+  private searchFromDisk(queryVector: Vector, topK: number, minSimilarity: number): VectorSearchResult[] {
+    const results: VectorSearchResult[] = [];
+    const rows = this.db.prepare(`SELECT id, vector_data, compression_type, min_val, max_val FROM vectors WHERE tier = 'cold'`).all() as Record<string, unknown>[];
+    
+    for (const row of rows) {
+      const vector = this.decompressVector(row.vector_data as Buffer, row.compression_type as string, row.min_val as number | undefined, row.max_val as number | undefined);
+      const similarity = this.cosineSimilarity(queryVector, vector);
+      if (similarity >= minSimilarity) {
+        results.push({ id: row.id as string, similarity, vector });
+      }
+    }
+    
+    results.sort((a, b) => b.similarity - a.similarity);
+    return results.slice(0, topK);
+  }
+  
+  private compressVector(vector: Vector): { data: Buffer; compressionType: string; min?: number; max?: number } {
+    switch (this.config.compression) {
+      case "float16":
+        return { data: compressVectorToFloat16(vector), compressionType: "float16" };
+      case "int8":
+        const quantized = quantizeVector(vector);
+        return { data: quantized.data, compressionType: "int8", min: quantized.min, max: quantized.max };
+      case "none":
+      default:
+        const buffer = Buffer.alloc(vector.length * 4);
+        for (let i = 0; i < vector.length; i++) {
+          buffer.writeFloatLE(vector[i], i * 4);
+        }
+        return { data: buffer, compressionType: "none" };
+    }
+  }
+  
+  private decompressVector(data: Buffer, compressionType: string, min?: number, max?: number): Vector {
+    switch (compressionType) {
+      case "float16":
+        return decompressVectorFromFloat16(data, this.vectorDim);
+      case "int8":
+        if (min === undefined || max === undefined) throw new Error("Missing min/max for int8");
+        return dequantizeVector(data, min, max);
+      case "none":
+      default:
+        const vector: Vector = new Array(this.vectorDim);
+        for (let i = 0; i < this.vectorDim; i++) {
+          vector[i] = data.readFloatLE(i * 4);
+        }
+        return vector;
+    }
+  }
+  
+  private cosineSimilarity(a: Vector, b: Vector): number {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB) + 1e-10);
+  }
+  
+  getStats() {
+    const total = this.db.prepare(`SELECT COUNT(*) as count FROM vectors`).get() as { count: number };
+    const totalCache = this.stats.cacheHits + this.stats.cacheMisses;
+    return {
+      hotCacheSize: this.hotCache.size,
+      warmCacheSize: this.warmCache.size,
+      totalVectors: total.count,
+      cacheHitRate: totalCache > 0 ? this.stats.cacheHits / totalCache : 0,
+      diskReads: this.stats.diskReads,
+      diskWrites: this.stats.diskWrites,
+    };
+  }
+  
+  close(): void {
+    this.db.close();
+    this.hotCache.clear();
+    this.warmCache.clear();
+  }
+}
+
+let globalVectorStorage: VectorStorage | null = null;
+
+export function getVectorStorage(config?: Partial<VectorStorageConfig>): VectorStorage {
+  if (!globalVectorStorage) {
+    globalVectorStorage = new VectorStorage(config);
+  }
+  return globalVectorStorage;
+}
+
+export function resetVectorStorage(): void {
+  if (globalVectorStorage) {
+    globalVectorStorage.close();
+    globalVectorStorage = null;
+  }
+}

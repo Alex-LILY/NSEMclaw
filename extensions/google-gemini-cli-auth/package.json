@@ -1,0 +1,12 @@
+{
+  "name": "@nsemclaw/google-gemini-cli-auth",
+  "version": "2026.2.27",
+  "private": true,
+  "description": "Nsemclaw Gemini CLI OAuth provider plugin",
+  "type": "module",
+  "nsemclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

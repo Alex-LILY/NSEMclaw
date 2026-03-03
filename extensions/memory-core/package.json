@@ -1,0 +1,15 @@
+{
+  "name": "@nsemclaw/memory-core",
+  "version": "2026.2.27",
+  "private": true,
+  "description": "Nsemclaw core memory search plugin",
+  "type": "module",
+  "peerDependencies": {
+    "nsemclaw": "workspace:*"
+  },
+  "nsemclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
