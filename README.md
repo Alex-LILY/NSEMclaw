@@ -1,6 +1,8 @@
-# NSEM·瑶姬 🧚‍♀️
+# NSEM·瑶姬✨
 
-> 下一代AI复合智能体架构 - 基于 OpenClaw 二次开发
+> 下一代AI复合智能体架构
+
+![Banner](assets/banner.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/Version-2026.2.27-blue.svg)](https://github.com/Alex-LILY/NSEMclaw/releases)
@@ -10,7 +12,7 @@
 
 **NSEM·瑶姬**（简称 NSEMclaw）是基于 **OpenClaw** 二次开发的多通道AI网关系统，是一个面向未来的下一代AI复合智能体架构。
 
-该项目旨在打造一个高度模块化、可扩展的AI助手平台，支持多种通讯渠道的集成，并具备强大的多智能体协作能力和高级记忆系统。
+该项目旨在打造一个高度模块化、可扩展的AI助手平台，具备强大的多智能体协作能力和高级记忆系统。
 
 ## ✨ 核心特性
 
@@ -21,32 +23,12 @@
 - **认知核心 (Cognitive Core)**：内置记忆管理、任务队列、断路器、重试机制
 - **人格系统**：支持多个人格切换（Alex / Alex-Lily）
 
-### 📡 多通道集成
+### 📡 支持通道
 
-| 通道 | 状态 | 说明 |
-|------|------|------|
-| Telegram | ✅ | 支持群组、私聊、机器人 |
-| Discord | ✅ | 服务器、频道、线程 |
-| Slack | ✅ | 工作区、频道 |
-| WhatsApp | ✅ | 个人、群组 |
-| Signal | ✅ | 加密消息 |
-| 飞书 | ✅ | 企业通讯 |
-| Matrix | ✅ | 去中心化通讯 |
-
-### 🧠 高级记忆系统
-
-- **QMD 向量记忆**：基于 QMD 的语义搜索能力
-- **混合检索**：向量 + 关键词混合搜索
-- **长期记忆**：持久化存储重要信息
-- **短期记忆**：会话级上下文管理
-- **时间衰减**：智能遗忘机制
-
-### 🔧 扩展架构
-
-- **Plugin SDK**：完整的插件开发套件
-- **16+ 官方扩展**：开箱即用的功能扩展
-- **自定义技能**：灵活的技能系统
-- **MCP 协议**：支持 Model Context Protocol
+| 通道 | 状态 |
+|------|------|
+| Telegram | ✅ |
+| WebChat | ✅ |
 
 ### 🎯 核心能力
 
@@ -58,33 +40,106 @@
 | 工具编排 | 灵活的任务调度 |
 | 邮件管理 | Gmail + Outlook 集成 |
 
-## 🏗️ 系统架构
+## 🧠 NSEM 记忆系统
+
+NSEMclaw 拥有强大的多层次记忆系统，是区别于其他AI助手框架的核心优势。
+
+### 记忆架构
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        NSEM·瑶姬                            │
+│                      长期记忆 (MEMORY.md)                    │
+│         持久化存储重要信息、偏好、决策、学习                   │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
-│  │   Agent 1   │  │   Agent 2   │  │   Agent N   │       │
-│  │   (Alex)    │  │   (Ops)     │  │  (Custom)   │       │
-│  └─────────────┘  └─────────────┘  └─────────────┘       │
+│                    QMD 向量记忆搜索                          │
+│        语义搜索 + 混合检索 + 时间衰减机制                    │
 ├─────────────────────────────────────────────────────────────┤
-│                     Cognitive Core                          │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐     │
-│  │  Memory  │ │  Queue   │ │ Circuit  │ │ Collab   │     │
-│  │          │ │          │ │ Breaker │ │          │     │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘     │
+│                   每日记忆 (memory/)                        │
+│            会话日志、工作记录、任务追踪                      │
 ├─────────────────────────────────────────────────────────────┤
-│                        Gateway                               │
-│  ┌──────────────────────────────────────────────────┐     │
-│  │  Channel Adapters (Telegram/Discord/Slack/...)   │     │
-│  └──────────────────────────────────────────────────┘     │
-├─────────────────────────────────────────────────────────────┤
-│                        Skills                                │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐          │
-│  │ Gmail │ │ GitHub│ │Notion│ │ Web  │ │ ...  │          │
-│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘          │
+│                    工作记忆 (Context)                        │
+│              当前会话上下文、工具状态                        │
 └─────────────────────────────────────────────────────────────┘
+```
+
+### 1. 长期记忆 (MEMORY.md)
+
+- 持久化存储在文件系统中
+- 存储重要决策、偏好设置、学习成果
+- 可被语义搜索检索
+
+```markdown
+# MEMORY.md - 长期记忆
+
+## 核心身份
+- 运行框架: Nsemclaw
+- 底层模型: MiniMax M2.5
+
+## 已知工作方式
+- 每次会话从空白开始
+- 记忆靠写入文件 persistence
+```
+
+### 2. QMD 向量记忆
+
+基于 QMD 的语义搜索能力，支持：
+
+- **混合检索**：向量 + 关键词混合搜索
+- **时间衰减**：智能遗忘机制，近期信息权重更高
+- **语义理解**：理解自然语言查询
+
+```bash
+# 使用 qmd 进行语义搜索
+qmd query "上次讨论的项目"
+qmd search "关于Python代码"
+```
+
+### 3. 每日记忆 (memory/YYYY-MM-DD.md)
+
+自动记录每日工作：
+
+```markdown
+# 2026-03-04 记忆
+
+## 🎯 今日完成
+- 配置邮件技能
+- 上传项目到 GitHub
+
+## 📝 备注
+- 需要添加更多测试用例
+```
+
+### 4. 认知核心 (Cognitive Core)
+
+内置强大的认知引擎：
+
+| 模块 | 功能 |
+|------|------|
+| **Memory** | 记忆存储与检索 |
+| **Queue** | 任务队列管理 |
+| **Circuit Breaker** | 断路器保护 |
+| **Collaboration** | 多智能体协作 |
+
+```javascript
+// 认知核心操作示例
+cognitive_core({
+  action: "memory_store",
+  memory_content: "重要信息",
+  memory_tier: "long-term"
+})
+```
+
+### 记忆检索示例
+
+```bash
+# 语义搜索
+qmd query "关于项目决策"
+
+# 关键词搜索
+qmd search "2026年"
+
+# 向量相似度搜索
+qmd vsearch "用户偏好"
 ```
 
 ## 🚀 快速开始
@@ -93,7 +148,7 @@
 
 - Node.js >= 20.x
 - pnpm >= 8.x
-- Linux/macOS (Windows WSL2 已测试)
+- Linux/macOS
 
 ### 安装步骤
 
@@ -107,124 +162,18 @@ pnpm install
 
 # 3. 配置环境
 cp nsemclaw.config.example.json nsemclaw.json
-# 编辑 nsemclaw.json 配置你的 API keys
 
 # 4. 启动
 pnpm start
 ```
 
-### 配置说明
-
-主要配置文件 `nsemclaw.json`：
-
-```json5
-{
-  // 模型配置
-  models: {
-    mode: "merge",
-    providers: {
-      minimax: {
-        // 你的 API 配置
-      }
-    }
-  },
-  
-  // 智能体配置
-  agents: {
-    defaults: {
-      workspace: "~/.nsemclaw/workspace",
-      model: { primary: "minimax/MiniMax-M2.5" }
-    }
-  },
-  
-  // 通道配置
-  channels: {
-    telegram: {
-      enabled: true,
-      botToken: "YOUR_BOT_TOKEN"
-    }
-  },
-  
-  // 记忆系统
-  memory: {
-    backend: "qmd",
-    qmd: {
-      paths: [{ path: "~/.nsemclaw/workspace", name: "workspace" }]
-    }
-  }
-}
-```
-
 ## 📚 文档
 
 - [📖 完整文档](https://docs.nsemclaw.ai)
-- [🔧 安装指南](https://docs.nsemclaw.ai/getting-started)
-- [💬 通道配置](https://docs.nsemclaw.ai/channels)
-- [🧠 记忆系统](https://docs.nsemclaw.ai/memory)
-- [🔌 插件开发](https://docs.nsemclaw.ai/plugins)
-
-## 🗂️ 项目结构
-
-```
-NSEMclaw/
-├── src/                    # 核心源代码
-│   ├── gateway/           # 网关实现
-│   ├── agents/            # 智能体核心
-│   ├── cognitive-core/    # 认知引擎
-│   └── ...
-├── extensions/            # 官方扩展
-│   ├── telegram/
-│   ├── discord/
-│   ├── slack/
-│   ├── whatsapp/
-│   └── ...
-├── skills/               # 技能模块
-├── docs/                 # 项目文档
-├── ui/                   # Web UI
-├── packages/             # 子包
-│   ├── clawdbot/
-│   └── moltbot/
-└── test/                 # 测试文件
-```
-
-## 🔌 可用技能
-
-| 技能 | 说明 |
-|------|------|
-| Gmail | 邮件读取/发送 |
-| GitHub | 仓库/Issue/PR 管理 |
-| Notion | 笔记数据库操作 |
-| 数据库 | SQL 操作支持 |
-| 文件搜索 | 快速定位文件 |
-| 漏洞扫描 | 安全检测工具 |
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-```bash
-# 开发模式
-pnpm dev
-
-# 运行测试
-pnpm test
-
-# 构建
-pnpm build
-```
-
-## 📄 许可证
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## 🙏 致谢
-
-- [OpenClaw](https://github.com/nsemclaw/openclaw) - 原始项目
-- [MiniMax](https://minimax.io) - AI 模型支持
-- [Maton](https://maton.ai) - 邮件网关
+- [🧠 记忆系统详解](https://docs.nsemclaw.ai/memory)
 
 ---
 
 <p align="center">
-  <strong>NSEM·瑶姬 🧚‍♀️ - 让AI成为你的灵魂伴侣</strong>
+  <strong>NSEM·瑶姬✨ - 下一代AI复合智能体架构</strong>
 </p>
