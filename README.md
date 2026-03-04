@@ -16,7 +16,7 @@
 
 **NSEM·瑶姬**（简称 NSEMclaw）是基于 **OpenClaw** 二次开发的多通道AI网关系统，是一个面向未来的下一代AI复合智能体架构。
 
-2026年3月，NSEM 正式升级为 **NSEM 3.0 Phoenix（浴火重生版）**，带来了革命性的认知能力和全新的系统架构。
+2026年3月，NSEM 正式升级为 **NSEM 3.0 Phoenix（浴火重生版）**。本次升级**参考火山引擎的 [OpenViking](https://github.com/volcengine/OpenViking) 进行融合升级**，将 NSEM 独特的神经符号进化记忆系统与 OpenViking 的先进架构深度结合，带来了革命性的认知能力和全新的系统架构。
 
 ---
 
