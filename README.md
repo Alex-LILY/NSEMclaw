@@ -486,6 +486,7 @@ NSEMclaw/
 
 本项目基于以下优秀开源项目和技术：
 
+- [OpenViking](https://github.com/volcengine/OpenViking) - **核心基础框架**，NSEM 3.0 在此基础上进行融合升级
 - [OpenClaw](https://github.com/nsemclaw/openclaw) - 原始框架
 - [MiniMax](https://platform.minimax.io) - AI 模型支持
 - [Maton](https://github.com/maton-ai/maton) - 邮件网关
