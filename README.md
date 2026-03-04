@@ -45,7 +45,7 @@
 
 ## 🧠 NSEM 3.0 Phoenix 认知核心系统
 
-NSEMclaw 搭载全新的 **NSEM 3.0 Phoenix 认知核心**，这是革命性的神经符号进化记忆系统，带来前所未有的认知能力。
+NSEMclaw 搭载全新的 **NSEM 3.0 Phoenix 认知核心**，这是基于 [OpenViking](https://github.com/volcengine/OpenViking) 架构理念设计的革命性神经符号进化记忆系统，为AI助手带来了前所未有的认知能力。
 
 ### 📌 本次更新 (2026.03)
 
@@ -231,6 +231,7 @@ pnpm start
 
 ### 核心框架
 - [OpenClaw](https://github.com/nsemclaw/openclaw) - 原始框架
+- [OpenViking](https://github.com/volcengine/OpenViking) - 火山引擎AI Agent框架，NSEM认知核心架构参考
 - [Node.js](https://nodejs.org) - 运行时环境
 
 ### AI 模型支持
