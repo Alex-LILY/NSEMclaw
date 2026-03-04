@@ -227,6 +227,6 @@ export function registerNSEMExtension(memory: Command) {
         ["nsemclaw memory nsem status", "Show NSEM ecosystem status."],
         ["nsemclaw memory nsem evolve", "Trigger manual memory evolution."],
         ['nsemclaw memory nsem associate "learning"', "Find associations with 'learning'."],
-      ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/advanced/nsem", "docs.nsemclaw.ai/advanced/nsem")}\n`,
+      ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/advanced/nsem", "docs.openclaw.ai/advanced/nsem")}\n`,
   );
 }

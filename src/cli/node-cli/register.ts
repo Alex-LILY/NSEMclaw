@@ -33,7 +33,7 @@ export function registerNodeCli(program: Command) {
           ["nsemclaw node status", "Check node host service status."],
           ["nsemclaw node install", "Install the node host service."],
           ["nsemclaw node restart", "Restart the installed node host service."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.nsemclaw.ai/cli/node")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.openclaw.ai/cli/node")}\n`,
     );
 
   node

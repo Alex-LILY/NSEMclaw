@@ -1,6 +1,6 @@
 # Nsemclaw Security & Trust
 
-**Live:** [trust.nsemclaw.ai](https://trust.nsemclaw.ai)
+**Live:** [trust.openclaw.ai](https://trust.openclaw.ai)
 
 ## Documents
 
@@ -9,7 +9,7 @@
 
 ## Reporting Vulnerabilities
 
-See the [Trust page](https://trust.nsemclaw.ai) for full reporting instructions covering all repos.
+See the [Trust page](https://trust.openclaw.ai) for full reporting instructions covering all repos.
 
 ## Contact
 

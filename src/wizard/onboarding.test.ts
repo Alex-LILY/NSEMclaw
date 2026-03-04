@@ -197,18 +197,14 @@ vi.mock("./onboarding.completion.js", () => ({
 
 function createRuntime(opts?: { throwsOnExit?: boolean }): RuntimeEnv {
   if (opts?.throwsOnExit) {
-    return {
-      log: vi.fn(),
-      error: vi.fn(),
+    return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
       exit: vi.fn((code: number) => {
         throw new Error(`exit:${code}`);
       }),
     };
   }
 
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn(),
   };
 }

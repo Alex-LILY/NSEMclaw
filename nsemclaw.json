@@ -92,8 +92,36 @@
     }
   },
 
+  "memory": {
+    "_comment": "记忆系统配置 - backend: qmd 启用QMD向量搜索，builtin 使用内置搜索",
+    "backend": "qmd",
+    "qmd": {
+      "_comment": "QMD 配置 - 定义要索引的集合",
+      "paths": [
+        {
+          "name": "workspace-test",
+          "path": "/home/kade/.nsemclaw/workspace",
+          "pattern": "**/*.md"
+        }
+      ],
+      "update": {
+        "onBoot": true,
+        "waitForBootSync": false,
+        "interval": "5m"
+      }
+    }
+  },
+
+  "channels": {
+    "_comment": "通道配置",
+    "telegram": {
+      "_comment": "Telegram 配置 - 增加超时时间以应对网络延迟",
+      "timeoutSeconds": 60
+    }
+  },
+
   "cognitiveCore": {
-    "_comment": "认知核心全局配置",
+    "_comment": "NSEM认知核心全局配置",
     "autoStart": true,
     "fallbackToTraditional": true,
     "hybridSearch": {

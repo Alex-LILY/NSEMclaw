@@ -100,9 +100,7 @@ describe("createTelegramBot", () => {
 
     createTelegramBot({
       token: "tok",
-      runtime: {
-        log: vi.fn(),
-        error: errorSpy,
+      runtime: { log: vi.fn(), warn: vi.fn(), error: errorSpy,
         exit: ((code: number) => {
           throw new Error(`exit ${code}`);
         }) as (code: number) => never,

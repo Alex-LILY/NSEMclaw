@@ -27,9 +27,7 @@ function createPrompter() {
 }
 
 function createRuntime(): RuntimeEnv {
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn((code: number) => {
       throw new Error(`exit:${code}`);
     }),

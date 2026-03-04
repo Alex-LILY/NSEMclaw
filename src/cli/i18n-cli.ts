@@ -158,7 +158,7 @@ export const CLI_ZH_CN = {
 
   // 文档链接
   docs: {
-    cli: "文档：https://docs.nsemclaw.ai/cli",
+    cli: "文档：https://docs.openclaw.ai/cli",
   },
 
   // Doctor 警告

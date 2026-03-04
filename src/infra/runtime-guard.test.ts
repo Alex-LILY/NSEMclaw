@@ -52,10 +52,7 @@ describe("runtime-guard", () => {
   });
 
   it("throws via exit when runtime is too old", () => {
-    const runtime = {
-      log: vi.fn(),
-      error: vi.fn(),
-      exit: vi.fn(() => {
+    const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(() => {
         throw new Error("exit");
       }),
     };
@@ -70,10 +67,7 @@ describe("runtime-guard", () => {
   });
 
   it("returns silently when runtime meets requirements", () => {
-    const runtime = {
-      log: vi.fn(),
-      error: vi.fn(),
-      exit: vi.fn(),
+    const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(),
     };
     const details: RuntimeDetails = {
       ...detectRuntime(),

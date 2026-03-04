@@ -27,9 +27,9 @@ import {
 const log = createSubsystemLogger("nsem-embedding");
 
 export interface SmartEmbeddingConfig {
-  cfg: NsemclawConfig;
-  agentId: string;
-  memoryConfig: ResolvedMemorySearchConfig;
+  cfg?: NsemclawConfig;
+  agentId?: string;
+  memoryConfig?: Partial<ResolvedMemorySearchConfig>;
   /** 资源限制模式 */
   resourceMode?: "minimal" | "balanced" | "performance";
   /** 是否自动下载模型 */
@@ -38,6 +38,10 @@ export interface SmartEmbeddingConfig {
   expansionModelPath?: string;
   /** Reranker 模型路径 */
   rerankerModelPath?: string;
+  /** 模型缓存目录（当 memoryConfig 未提供时使用） */
+  modelCacheDir?: string;
+  /** 模型路径（当 memoryConfig 未提供时使用） */
+  modelPath?: string;
 }
 
 /**
@@ -126,11 +130,13 @@ export class SmartEmbeddingEngine {
    * 解析模型路径（优先使用配置，否则使用自动下载路径）
    */
   private resolveModelPaths(): { embedding: string; expansion?: string; reranker?: string } {
-    const { cfg, memoryConfig } = this.config;
+    const { cfg, memoryConfig, modelPath } = this.config;
 
     // 嵌入模型路径
     let embeddingPath: string;
-    if (memoryConfig.local?.modelPath) {
+    if (modelPath) {
+      embeddingPath = modelPath;
+    } else if (memoryConfig?.local?.modelPath) {
       embeddingPath = memoryConfig.local.modelPath;
     } else {
       // 使用 NSEM 预定义模型
@@ -494,7 +500,7 @@ export class SmartEmbeddingEngine {
   private async loadEmbeddingModel(): Promise<void> {
     if (this.embeddingProvider) return;
 
-    const { cfg, memoryConfig } = this.config;
+    const { cfg, memoryConfig, modelCacheDir } = this.config;
     const modelPath = this.modelPaths.embedding;
 
     log.info(`加载嵌入模型: ${modelPath}`);
@@ -503,13 +509,13 @@ export class SmartEmbeddingEngine {
     }
 
     const result = await createEmbeddingProvider({
-      config: cfg,
+      config: cfg ?? {} as NsemclawConfig,
       provider: "local",
       model: modelPath,
       fallback: "none",
       local: {
         modelPath,
-        modelCacheDir: memoryConfig.local.modelCacheDir,
+        modelCacheDir: modelCacheDir ?? memoryConfig?.local?.modelCacheDir,
       },
     });
 
@@ -525,20 +531,20 @@ export class SmartEmbeddingEngine {
     if (this.expansionProvider) return;
     if (!this.modelPaths.expansion) return;
 
-    const { cfg, memoryConfig } = this.config;
+    const { cfg, memoryConfig, modelCacheDir } = this.config;
     const modelPath = this.modelPaths.expansion;
 
     log.info(`加载扩展模型: ${modelPath}`);
 
     try {
       const result = await createEmbeddingProvider({
-        config: cfg,
+        config: cfg ?? {} as NsemclawConfig,
         provider: "local",
         model: modelPath,
         fallback: "none",
         local: {
           modelPath,
-          modelCacheDir: memoryConfig.local.modelCacheDir,
+          modelCacheDir: modelCacheDir ?? memoryConfig?.local?.modelCacheDir,
         },
       });
 
@@ -557,20 +563,20 @@ export class SmartEmbeddingEngine {
     if (this.resourceMode === "minimal") return;
     if (!this.modelPaths.reranker) return;
 
-    const { cfg, memoryConfig } = this.config;
+    const { cfg, memoryConfig, modelCacheDir } = this.config;
     const modelPath = this.modelPaths.reranker;
 
     log.info(`加载重排模型: ${modelPath}`);
 
     try {
       const result = await createEmbeddingProvider({
-        config: cfg,
+        config: cfg ?? {} as NsemclawConfig,
         provider: "local",
         model: modelPath,
         fallback: "none",
         local: {
           modelPath,
-          modelCacheDir: memoryConfig.local.modelCacheDir,
+          modelCacheDir: modelCacheDir ?? memoryConfig?.local?.modelCacheDir,
         },
       });
 
@@ -667,15 +673,15 @@ export class SmartEmbeddingEngine {
  * 创建智能嵌入引擎
  */
 export async function createSmartEmbeddingEngine(
-  cfg: NsemclawConfig,
-  agentId: string,
-  memoryConfig: ResolvedMemorySearchConfig,
+  cfg?: NsemclawConfig,
+  agentId?: string,
+  memoryConfig?: ResolvedMemorySearchConfig,
   resourceModeOrOptions?:
     | "minimal"
     | "balanced"
     | "performance"
     | { forceResourceMode?: string; cacheSize?: number },
-  nsemConfig?: { rerankerModel?: string; expansionModel?: string; autoDownloadModels?: boolean },
+  nsemConfig?: { rerankerModel?: string; expansionModel?: string; autoDownloadModels?: boolean; modelCacheDir?: string; modelPath?: string },
 ): Promise<SmartEmbeddingEngine> {
   let resourceMode: "minimal" | "balanced" | "performance" | undefined;
 
@@ -696,6 +702,8 @@ export async function createSmartEmbeddingEngine(
     autoDownloadModels: nsemConfig?.autoDownloadModels ?? true,
     rerankerModelPath: nsemConfig?.rerankerModel,
     expansionModelPath: nsemConfig?.expansionModel,
+    modelCacheDir: nsemConfig?.modelCacheDir,
+    modelPath: nsemConfig?.modelPath,
   });
   await engine.initialize();
   return engine;

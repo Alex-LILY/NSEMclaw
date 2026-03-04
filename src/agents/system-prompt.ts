@@ -176,7 +176,7 @@ function buildDocsSection(params: { docsPath?: string; isMinimal: boolean; readT
   return [
     "## Documentation",
     `Nsemclaw docs: ${docsPath}`,
-    "Mirror: https://docs.nsemclaw.ai",
+    "Mirror: https://docs.openclaw.ai",
     "Source: https://github.com/nsemclaw/openclaw",
     "Community: https://discord.com/invite/clawd",
     "Find new skills: https://clawhub.com",

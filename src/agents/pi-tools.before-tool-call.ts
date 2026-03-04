@@ -5,6 +5,7 @@ import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { isPlainObject } from "../utils.js";
 import { normalizeToolName } from "./tool-policy.js";
 import type { AnyAgentTool } from "./tools/common.js";
+import { decideToolCall, submitToolCallFeedback } from "./tool-decision-hook.js";
 
 export type HookContext = {
   agentId?: string;
@@ -18,6 +19,10 @@ const log = createSubsystemLogger("agents/tools");
 const BEFORE_TOOL_CALL_WRAPPED = Symbol("beforeToolCallWrapped");
 const adjustedParamsByToolCallId = new Map<string, unknown>();
 const MAX_TRACKED_ADJUSTED_PARAMS = 1024;
+
+/** 工具决策记录（用于后续反馈） */
+const toolDecisionIds = new Map<string, { decisionId: string; toolName: string; startTime: number }>();
+const MAX_TRACKED_DECISIONS = 1024;
 const LOOP_WARNING_BUCKET_SIZE = 10;
 const MAX_LOOP_WARNING_KEYS = 256;
 
@@ -79,6 +84,7 @@ export async function runBeforeToolCallHook(args: {
 }): Promise<HookOutcome> {
   const toolName = normalizeToolName(args.toolName || "tool");
   const params = args.params;
+  let decisionModifiedParams = params; // 决策可能修改的参数
 
   if (args.ctx?.sessionKey) {
     const { getDiagnosticSessionState } = await import("../logging/diagnostic-session-state.js");
@@ -130,6 +136,42 @@ export async function runBeforeToolCallHook(args: {
     }
 
     recordToolCall(sessionState, toolName, params, args.toolCallId, args.ctx.loopDetection);
+
+    // ============================================================================
+    // 决策系统集成 - 工具调用决策
+    // ============================================================================
+    const decisionResult = await decideToolCall({
+      toolName,
+      params,
+      toolCallId: args.toolCallId,
+      ctx: args.ctx,
+    });
+
+    if (decisionResult.blocked) {
+      return {
+        blocked: true,
+        reason: decisionResult.reason,
+      };
+    }
+
+    // 存储决策ID用于后续反馈
+    if (args.toolCallId && decisionResult.decisionId) {
+      toolDecisionIds.set(args.toolCallId, {
+        decisionId: decisionResult.decisionId,
+        toolName,
+        startTime: Date.now(),
+      });
+      // 清理过期决策记录
+      if (toolDecisionIds.size > MAX_TRACKED_DECISIONS) {
+        const oldest = toolDecisionIds.keys().next().value;
+        if (oldest) {
+          toolDecisionIds.delete(oldest);
+        }
+      }
+    }
+
+    // 使用决策可能修改的参数 (decisionModifiedParams 已在上方声明)
+    // ============================================================================
   }
 
   const hookRunner = getGlobalHookRunner();
@@ -159,8 +201,8 @@ export async function runBeforeToolCallHook(args: {
     }
 
     if (hookResult?.params && isPlainObject(hookResult.params)) {
-      if (isPlainObject(params)) {
-        return { blocked: false, params: { ...params, ...hookResult.params } };
+      if (isPlainObject(decisionModifiedParams)) {
+        return { blocked: false, params: { ...(decisionModifiedParams as Record<string, unknown>), ...hookResult.params } };
       }
       return { blocked: false, params: hookResult.params };
     }
@@ -169,7 +211,7 @@ export async function runBeforeToolCallHook(args: {
     log.warn(`before_tool_call hook failed: tool=${toolName}${toolCallId} error=${String(err)}`);
   }
 
-  return { blocked: false, params };
+  return { blocked: false, params: decisionModifiedParams };
 }
 
 export function wrapToolWithBeforeToolCallHook(
@@ -203,8 +245,24 @@ export function wrapToolWithBeforeToolCallHook(
         }
       }
       const normalizedToolName = normalizeToolName(toolName || "tool");
+      const decisionRecord = toolCallId ? toolDecisionIds.get(toolCallId) : undefined;
+      
       try {
         const result = await execute(toolCallId, outcome.params, signal, onUpdate);
+        
+        // 提交决策反馈（成功）
+        if (decisionRecord) {
+          const duration = Date.now() - decisionRecord.startTime;
+          submitToolCallFeedback({
+            toolName: normalizedToolName,
+            decisionId: decisionRecord.decisionId,
+            success: true,
+            duration,
+            sessionKey: ctx?.sessionKey,
+          });
+          toolDecisionIds.delete(toolCallId!);
+        }
+        
         await recordLoopOutcome({
           ctx,
           toolName: normalizedToolName,
@@ -214,6 +272,20 @@ export function wrapToolWithBeforeToolCallHook(
         });
         return result;
       } catch (err) {
+        // 提交决策反馈（失败）
+        if (decisionRecord) {
+          const duration = Date.now() - decisionRecord.startTime;
+          submitToolCallFeedback({
+            toolName: normalizedToolName,
+            decisionId: decisionRecord.decisionId,
+            success: false,
+            duration,
+            error: err instanceof Error ? err.message : String(err),
+            sessionKey: ctx?.sessionKey,
+          });
+          toolDecisionIds.delete(toolCallId!);
+        }
+        
         await recordLoopOutcome({
           ctx,
           toolName: normalizedToolName,
@@ -241,6 +313,22 @@ export function consumeAdjustedParamsForToolCall(toolCallId: string): unknown {
   const params = adjustedParamsByToolCallId.get(toolCallId);
   adjustedParamsByToolCallId.delete(toolCallId);
   return params;
+}
+
+/** 获取工具决策统计 */
+export function getToolDecisionHookStats(): {
+  pendingDecisions: number;
+  adjustedParams: number;
+} {
+  return {
+    pendingDecisions: toolDecisionIds.size,
+    adjustedParams: adjustedParamsByToolCallId.size,
+  };
+}
+
+/** 清理工具决策记录 */
+export function clearToolDecisionHistory(): void {
+  toolDecisionIds.clear();
 }
 
 export const __testing = {

@@ -16,9 +16,7 @@ vi.mock("../terminal/note.js", () => ({
 }));
 
 describe("maybeRepairSandboxImages", () => {
-  const mockRuntime: RuntimeEnv = {
-    log: vi.fn(),
-    error: vi.fn(),
+  const mockRuntime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn(),
   };
 

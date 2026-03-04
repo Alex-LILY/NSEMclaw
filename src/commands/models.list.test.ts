@@ -90,10 +90,7 @@ vi.mock("../agents/pi-embedded-runner/model.js", () => ({
 }));
 
 function makeRuntime() {
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
-    exit: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(),
   };
 }
 

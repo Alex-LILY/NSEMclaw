@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/feishu",
-  "version": "2026.2.27",
+  "version": "2026.3.4",
   "description": "Nsemclaw Feishu/Lark channel plugin (community maintained by @m1heng)",
   "type": "module",
   "dependencies": {

@@ -35,7 +35,7 @@ vi.mock("../globals.js", () => ({
 }));
 
 describe("channel-auth", () => {
-  const runtime = { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
+  const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn() };
   const plugin = {
     auth: { login: mocks.login },
     gateway: { logoutAccount: mocks.logoutAccount },

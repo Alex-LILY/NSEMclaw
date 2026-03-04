@@ -24,9 +24,7 @@ vi.mock("@vector-im/matrix-bot-sdk", () => ({
 }));
 
 describe("matrix directory", () => {
-  const runtimeEnv: RuntimeEnv = {
-    log: vi.fn(),
-    error: vi.fn(),
+  const runtimeEnv: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn((code: number): never => {
       throw new Error(`exit ${code}`);
     }),

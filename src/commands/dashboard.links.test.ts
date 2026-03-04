@@ -25,10 +25,7 @@ vi.mock("../infra/clipboard.js", () => ({
   copyToClipboard: copyToClipboardMock,
 }));
 
-const runtime = {
-  log: vi.fn(),
-  error: vi.fn(),
-  exit: vi.fn(),
+const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(),
 };
 
 function resetRuntime() {

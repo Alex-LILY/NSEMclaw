@@ -22,7 +22,7 @@ export type MemorySyncProgressUpdate = {
 };
 
 export type MemoryProviderStatus = {
-  backend: "builtin" | "qmd";
+  backend: "builtin" | "qmd" | "unified-core-v2" | "fusion" | "nsem-fusion-core";
   provider: string;
   model?: string;
   requestedProvider?: string;

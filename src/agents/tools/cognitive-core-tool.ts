@@ -1,5 +1,5 @@
 /**
- * 认知核心工具 - 让主 Agents 使用 NSEM2 认知核心功能
+ * NSEM认知核心工具 - 让主 Agents 使用 NSEM2 NSEM认知核心功能
  *
  * 提供功能:
  * - 选择性记忆继承 (规避共享记忆问题)
@@ -28,6 +28,11 @@ import {
   createMultiAgentCollaborationSystem,
   MultiAgentCollaborationSystem,
 } from "../../cognitive-core/multi-agent/MultiAgentCollaboration.js";
+import {
+  decideSubagentUsage,
+  submitSubagentTaskFeedback,
+  type SubagentDecision,
+} from "../../cognitive-core/integration/SubagentDecisionIntegration.js";
 import {
   createResilientSubagentOrchestrator,
   ResilientSubagentOrchestrator,
@@ -77,6 +82,7 @@ const COGNITIVE_ACTIONS = [
   "subagent_list", // 列出所有子代理
   "subagent_status", // 获取子代理状态
   "subagent_a2a", // 子代理间通信
+  "subagent_decide", // 决策是否使用子代理（新增）
   // 工作队列和 Pipeline
   "queue_submit", // 提交任务到队列
   "queue_claim", // 子代理领取任务
@@ -1335,6 +1341,47 @@ async function handlePipelineStatus(sessionKey: string, params: Record<string, u
 }
 
 // ============================================================================
+// 子代理决策处理
+// ============================================================================
+
+async function handleSubagentDecide(sessionKey: string, params: Record<string, unknown>) {
+  const taskDescription = readStringParam(params, "task_description", { required: true });
+  const availableModels = readStringArrayParam(params, "available_models") ?? [];
+  const currentLoad = readNumberParam(params, "current_load") ?? 0.5;
+
+  if (!taskDescription) {
+    return jsonResult({
+      status: "error",
+      error: "task_description is required",
+    });
+  }
+
+  // 使用决策系统
+  const decision = decideSubagentUsage({
+    taskDescription,
+    parentSessionKey: sessionKey,
+    availableModels,
+    currentLoad,
+  });
+
+  return jsonResult({
+    status: "ok",
+    action: "subagent_decide",
+    decision: {
+      should_spawn: decision.shouldSpawn,
+      strategy: decision.strategy,
+      recommended_model: decision.recommendedModel,
+      estimated_time_ms: decision.estimatedTime,
+      confidence: decision.confidence,
+    },
+    reasoning: decision.reasoning,
+    text: decision.shouldSpawn
+      ? `建议调用子代理\n策略: ${decision.strategy}\n推荐模型: ${decision.recommendedModel ?? "default"}\n预计耗时: ${(decision.estimatedTime / 1000).toFixed(1)}秒`
+      : `建议直接处理\n原因: ${decision.reasoning}`,
+  });
+}
+
+// ============================================================================
 // 工具创建函数
 // ============================================================================
 
@@ -1351,7 +1398,7 @@ export function createCognitiveCoreTool(options?: { agentSessionKey?: string }):
       "collaboration_start, collaboration_task, collaboration_status, " +
       "resilient_execute, circuit_breaker_status, " +
       "dead_letter_queue, dead_letter_replay, monitor_status, " +
-      "subagent_create, subagent_send, subagent_close, subagent_delete, subagent_list, subagent_status, subagent_a2a, " +
+      "subagent_create, subagent_send, subagent_close, subagent_delete, subagent_list, subagent_status, subagent_a2a, subagent_decide, " +
       "queue_submit, queue_claim, queue_complete, queue_fail, queue_list, queue_stats, " +
       "pipeline_create, pipeline_submit, pipeline_list, pipeline_status.",
     parameters: CognitiveCoreToolSchema,
@@ -1431,6 +1478,9 @@ export function createCognitiveCoreTool(options?: { agentSessionKey?: string }):
 
           case "subagent_a2a":
             return await handleSubagentA2A(sessionKey, params);
+
+          case "subagent_decide":
+            return await handleSubagentDecide(sessionKey, params);
 
           // 工作队列
           case "queue_submit":

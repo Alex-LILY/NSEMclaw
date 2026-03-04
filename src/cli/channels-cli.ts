@@ -85,7 +85,7 @@ export function registerChannelsCli(program: Command) {
           ["nsemclaw channels login --channel whatsapp", "连接 WhatsApp Web 账户。"],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/channels",
-          "docs.nsemclaw.ai/cli/channels",
+          "docs.openclaw.ai/cli/channels",
         )}\n`,
     );
 

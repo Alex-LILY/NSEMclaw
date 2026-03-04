@@ -1,17 +1,17 @@
 {
   "name": "nsemclaw",
-  "version": "2026.2.27",
+  "version": "2026.3.4",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
-  "homepage": "https://github.com/Alex-LILY/NSEMclaw_Cil#readme",
+  "homepage": "https://github.com/Alex-LILY/NSEMclaw#readme",
   "bugs": {
-    "url": "https://github.com/Alex-LILY/NSEMclaw_Cil/issues"
+    "url": "https://github.com/Alex-LILY/NSEMclaw/issues"
   },
   "license": "MIT",
   "author": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Alex-LILY/NSEMclaw_Cil.git"
+    "url": "git+https://github.com/Alex-LILY/NSEMclaw.git"
   },
   "bin": {
     "nsemclaw": "nsemclaw.mjs"

@@ -141,9 +141,7 @@ export async function runBootOnce(params: {
   workspaceDir: string;
   agentId?: string;
 }): Promise<BootRunResult> {
-  const bootRuntime: RuntimeEnv = {
-    log: () => {},
-    error: (message) => log.error(String(message)),
+  const bootRuntime: RuntimeEnv = { log: () => {}, warn: () => {}, error: (message) => log.error(String(message)),
     exit: defaultRuntime.exit,
   };
   let result: Awaited<ReturnType<typeof loadBootFile>>;

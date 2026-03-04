@@ -1,7 +1,7 @@
 /**
  * 混合记忆搜索管理器
  *
- * 同时搜索 NSEM 认知核心和传统记忆系统 (qmd/builtin)
+ * 同时搜索 NSEM NSEM认知核心和传统记忆系统 (qmd/builtin)
  * 合并结果，提供最佳记忆召回
  */
 
@@ -17,7 +17,7 @@ import type {
 const log = createSubsystemLogger("memory-hybrid");
 
 export interface HybridSearchManagerDeps {
-  /** NSEM 认知核心管理器 */
+  /** NSEM NSEM认知核心管理器 */
   nsem: MemorySearchManager;
   /** 传统记忆系统管理器 (qmd 或 builtin) */
   traditional: MemorySearchManager;

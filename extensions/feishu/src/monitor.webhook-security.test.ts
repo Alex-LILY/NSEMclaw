@@ -101,7 +101,7 @@ async function withRunningWebhookMonitor(
   });
 
   const abortController = new AbortController();
-  const runtime = { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
+  const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn() };
   const monitorPromise = monitorFeishuProvider({
     config: cfg,
     runtime,

@@ -362,4 +362,15 @@ export type GatewayConfig = {
    * Set to 0 to disable. Default: 5.
    */
   channelHealthCheckMinutes?: number;
+  /**
+   * Gateway startup configuration.
+   */
+  startup?: {
+    /** Memory thresholds for resource mode selection */
+    memoryThresholds?: {
+      minimal?: { max?: number; models?: string[]; gpu?: boolean };
+      balanced?: { min?: number; max?: number; models?: string[]; gpu?: boolean };
+      performance?: { min?: number; models?: string[]; gpu?: boolean };
+    };
+  };
 };

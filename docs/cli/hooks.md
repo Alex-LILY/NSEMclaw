@@ -90,7 +90,7 @@ Details:
   Source: nsemclaw-bundled
   Path: /path/to/nsemclaw/hooks/bundled/session-memory/HOOK.md
   Handler: /path/to/nsemclaw/hooks/bundled/session-memory/handler.ts
-  Homepage: https://docs.nsemclaw.ai/automation/hooks#session-memory
+  Homepage: https://docs.openclaw.ai/automation/hooks#session-memory
   Events: command:new
 
 Requirements:

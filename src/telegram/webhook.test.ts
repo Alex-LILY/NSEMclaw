@@ -217,7 +217,7 @@ describe("startTelegramWebhook", () => {
       config: cfg,
       port: 0, // random free port
       abortSignal: abort.signal,
-      runtime: { log: runtimeLog, error: vi.fn(), exit: vi.fn() },
+      runtime: { log: runtimeLog, warn: vi.fn(), error: vi.fn(), exit: vi.fn() },
     });
     expect(createTelegramBotSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -312,7 +312,7 @@ describe("startTelegramWebhook", () => {
       port: 0,
       abortSignal: abort.signal,
       path: "/hook",
-      runtime: { log: runtimeLog, error: vi.fn(), exit: vi.fn() },
+      runtime: { log: runtimeLog, warn: vi.fn(), error: vi.fn(), exit: vi.fn() },
     });
     try {
       const addr = server.address();

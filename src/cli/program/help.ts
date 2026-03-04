@@ -121,7 +121,7 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     if (command !== program) {
       return "";
     }
-    const docs = formatDocsLink("/cli", "docs.nsemclaw.ai/cli");
+    const docs = formatDocsLink("/cli", "docs.openclaw.ai/cli");
     return `\n${theme.heading("示例:")}\n${fmtExamples}\n\n${theme.muted("文档:")} ${docs}\n`;
   });
 }

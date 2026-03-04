@@ -76,5 +76,5 @@ If you only want to reset sessions, delete `agents/<agentId>/sessions/` and `age
 
 ## References
 
-- [https://docs.nsemclaw.ai/testing](https://docs.nsemclaw.ai/testing)
-- [https://docs.nsemclaw.ai/start/getting-started](https://docs.nsemclaw.ai/start/getting-started)
+- [https://docs.openclaw.ai/testing](https://docs.openclaw.ai/testing)
+- [https://docs.openclaw.ai/start/getting-started](https://docs.openclaw.ai/start/getting-started)

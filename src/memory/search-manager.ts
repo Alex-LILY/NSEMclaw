@@ -4,6 +4,12 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { ResolvedQmdConfig } from "./backend-config.js";
 import { resolveMemoryBackendConfig } from "./backend-config.js";
 import { HybridSearchManager } from "./hybrid-search-manager.js";
+import {
+  UnifiedCoreV2Adapter,
+  createUnifiedCoreV2Adapter,
+  type UnifiedCoreV2AdapterConfig,
+  NSEMFusionCoreAdapter,
+} from "./unified-core-v2-adapter.js";
 import type {
   MemoryEmbeddingProbeResult,
   MemorySearchManager,
@@ -13,6 +19,7 @@ import type {
 const log = createSubsystemLogger("memory");
 const QMD_MANAGER_CACHE = new Map<string, MemorySearchManager>();
 const HYBRID_MANAGER_CACHE = new Map<string, HybridSearchManager>();
+const UNIFIED_CORE_V2_CACHE = new Map<string, NSEMFusionCoreAdapter>();
 
 export type MemorySearchManagerResult = {
   manager: MemorySearchManager | null;
@@ -42,9 +49,37 @@ export async function getMemorySearchManager(params: {
 
   // 检查缓存
   if (!statusOnly) {
-    const cached = HYBRID_MANAGER_CACHE.get(cacheKey) ?? QMD_MANAGER_CACHE.get(cacheKey);
+    const cached = 
+      UNIFIED_CORE_V2_CACHE.get(cacheKey) ??
+      HYBRID_MANAGER_CACHE.get(cacheKey) ??
+      QMD_MANAGER_CACHE.get(cacheKey);
     if (cached) {
       return { manager: cached };
+    }
+  }
+
+  // 尝试 Unified Core V2（如果启用）
+  const unifiedCoreV2Config = getUnifiedCoreV2Config(cfg, params.agentId);
+  if (unifiedCoreV2Config) {
+    try {
+      const unifiedAdapter = await createUnifiedCoreV2Manager(
+        params,
+        cfg,
+        unifiedCoreV2Config,
+        statusOnly,
+        cacheKey
+      );
+      if (unifiedAdapter) {
+        if (!statusOnly) {
+          UNIFIED_CORE_V2_CACHE.set(cacheKey, unifiedAdapter);
+        }
+        log.info(`Unified Core V2 已启动 (agent: ${params.agentId}, mode: ${unifiedCoreV2Config.storageMode ?? "three-tier"})`);
+        return { manager: unifiedAdapter };
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      log.warn(`Unified Core V2 初始化失败: ${message}`);
+      // 继续尝试其他系统
     }
   }
 
@@ -56,12 +91,12 @@ export async function getMemorySearchManager(params: {
         if (!statusOnly) {
           HYBRID_MANAGER_CACHE.set(cacheKey, hybridManager);
         }
-        log.info(`混合记忆系统已启动 (agent: ${params.agentId})`);
+        log.info(`NSEM混合记忆系统已启动 (agent: ${params.agentId})`);
         return { manager: hybridManager };
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      log.warn(`混合记忆系统初始化失败: ${message}`);
+      log.warn(`NSEM混合记忆系统初始化失败: ${message}`);
       // 继续尝试传统系统
     }
   }
@@ -78,7 +113,7 @@ async function createHybridManager(
   cfg: NsemclawConfig,
   statusOnly: boolean,
 ): Promise<HybridSearchManager | null> {
-  const { getNSEM2Core } = await import("../cognitive-core/mind/nsem/NSEM2Core.js");
+  const { getNSEMFusionCore } = await import("../cognitive-core/NSEMFusionCore.js");
   const { NSEM2Adapter } = await import("../cognitive-core/integration/NSEM2Adapter.js");
   const { resolveMemorySearchConfig } = await import("../agents/memory-search.js");
   const { getNSEM2Config } = await import("../cognitive-core/config.js");
@@ -90,13 +125,8 @@ async function createHybridManager(
 
   const nsemConfig = getNSEM2Config(cfg, params.agentId);
 
-  // 初始化 NSEM
-  // @ts-expect-error getNSEM2Core expects 3 arguments but got 4
-  const nsem = await getNSEM2Core(cfg, params.agentId, memoryConfig, {
-    rerankerModel: nsemConfig.rerankerModel,
-    expansionModel: nsemConfig.expansionModel,
-  });
-  await nsem.start();
+  // 初始化 NSEM (getNSEMFusionCore 内部已调用 initialize，无需再调用 start)
+  const nsem = await getNSEMFusionCore(params.agentId);
 
   const nsemAdapter = new NSEM2Adapter(nsem, { agentId: params.agentId, cfg });
 
@@ -196,13 +226,17 @@ async function getTraditionalManagerInternal(
   if (resolved.backend === "qmd" && resolved.qmd) {
     try {
       const { QmdMemoryManager } = await import("./qmd-manager.js");
-      return await QmdMemoryManager.create({
+      const manager = await QmdMemoryManager.create({
         cfg: params.cfg,
         agentId: params.agentId,
         resolved,
         mode: statusOnly ? "status" : "full",
       });
-    } catch {
+      log.info(`[qmd] QmdMemoryManager 创建成功 (agent: ${params.agentId})`);
+      return manager;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      log.warn(`[qmd] QmdMemoryManager 创建失败: ${message}，将回退到 builtin`);
       // 失败时继续尝试 builtin
     }
   }
@@ -404,4 +438,68 @@ function sortValue(value: unknown): unknown {
     return Object.fromEntries(sortedEntries);
   }
   return value;
+}
+
+// ============================================================================
+// Unified Core V2 支持
+// ============================================================================
+
+/**
+ * 获取 Unified Core V2 配置
+ */
+function getUnifiedCoreV2Config(
+  cfg: NsemclawConfig,
+  agentId: string,
+): UnifiedCoreV2AdapterConfig | null {
+  const agentList = cfg.agents?.list as Array<{
+    id: string;
+    unifiedCoreV2?: { enabled?: boolean; mode?: "nsem2-compat" | "three-tier" | "hybrid-all" };
+  }> | undefined;
+  
+  const agentConfig = agentList?.find((a) => a.id === agentId);
+  
+  // 优先使用 agent 级别配置
+  if (agentConfig?.unifiedCoreV2?.enabled === true) {
+    return {
+      storageMode: agentConfig.unifiedCoreV2.mode ?? "three-tier",
+      enableExtraction: true,
+      enableSessionManager: true,
+    };
+  }
+  
+  // 使用默认配置
+  const defaults = (cfg.agents?.defaults as any)?.unifiedCoreV2;
+  if (defaults?.enabled === true) {
+    return {
+      storageMode: defaults.mode ?? "three-tier",
+      enableExtraction: true,
+      enableSessionManager: true,
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * 创建 Unified Core V2 管理器
+ */
+async function createUnifiedCoreV2Manager(
+  params: { cfg: NsemclawConfig; agentId: string },
+  cfg: NsemclawConfig,
+  config: UnifiedCoreV2AdapterConfig,
+  statusOnly: boolean,
+  cacheKey: string,
+): Promise<NSEMFusionCoreAdapter | null> {
+  // 检查缓存
+  if (!statusOnly) {
+    const cached = UNIFIED_CORE_V2_CACHE.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  const adapter = createUnifiedCoreV2Adapter(params.agentId, config);
+  await adapter.initialize();
+
+  return adapter;
 }

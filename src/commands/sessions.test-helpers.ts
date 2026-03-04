@@ -32,9 +32,7 @@ export function makeRuntime(params?: { throwOnError?: boolean }): {
   const errors: string[] = [];
   const throwOnError = params?.throwOnError ?? false;
   return {
-    runtime: {
-      log: (msg: unknown) => logs.push(String(msg)),
-      error: (msg: unknown) => {
+    runtime: { log: (msg: unknown) => logs.push(String(msg)), warn: vi.fn(), error: (msg: unknown) => {
         errors.push(String(msg));
         if (throwOnError) {
           throw new Error(String(msg));

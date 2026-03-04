@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/voice-call",
-  "version": "2026.2.27",
+  "version": "2026.3.4",
   "description": "Nsemclaw voice-call plugin",
   "type": "module",
   "dependencies": {

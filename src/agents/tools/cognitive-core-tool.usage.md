@@ -2,7 +2,7 @@
 
 ## 概述
 
-Cognitive Core Tool 让主 Agents 能够使用 NSEM2 认知核心的高级功能，包括：
+Cognitive Core Tool 让主 Agents 能够使用 NSEM2 NSEM认知核心的高级功能，包括：
 
 - **三层记忆存储**: 工作记忆、短期记忆、长期记忆
 - **弹性子代理协调**: 断路器、智能重试、超时控制、死信队列

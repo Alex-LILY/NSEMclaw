@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/memory-lancedb",
-  "version": "2026.2.27",
+  "version": "2026.3.4",
   "private": true,
   "description": "Nsemclaw LanceDB-backed long-term memory plugin with auto-recall/capture",
   "type": "module",

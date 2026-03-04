@@ -99,7 +99,7 @@ tailscale status
 ## 5) Install Nsemclaw
 
 ```bash
-curl -fsSL https://nsemclaw.ai/install.sh | bash
+curl -fsSL https://openclaw.ai/install.sh | bash
 source ~/.bashrc
 ```
 

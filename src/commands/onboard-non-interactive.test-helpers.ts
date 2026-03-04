@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import type { RuntimeEnv } from "../runtime.js";
 
-type RuntimeLike = Pick<RuntimeEnv, "log" | "error" | "exit">;
+type RuntimeLike = Pick<RuntimeEnv, "log" | "warn" | "error" | "exit">;
 
 export type NonInteractiveRuntime = {
   log: RuntimeLike["log"];
+  warn: RuntimeLike["warn"];
   error: RuntimeLike["error"];
   exit: RuntimeLike["exit"];
 };
@@ -19,6 +20,7 @@ const NON_INTERACTIVE_DEFAULT_OPTIONS = {
 export function createThrowingRuntime(): NonInteractiveRuntime {
   return {
     log: () => {},
+    warn: () => {},
     error: (...args: unknown[]) => {
       throw new Error(args.map(String).join(" "));
     },

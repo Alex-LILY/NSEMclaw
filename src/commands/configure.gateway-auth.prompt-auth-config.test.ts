@@ -42,9 +42,7 @@ vi.mock("./onboard-custom.js", () => ({
 import { promptAuthConfig } from "./configure.gateway-auth.js";
 
 function makeRuntime(): RuntimeEnv {
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn(),
   };
 }

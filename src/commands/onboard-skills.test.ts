@@ -121,9 +121,7 @@ function createPrompter(params: {
   return { prompter, notes };
 }
 
-const runtime: RuntimeEnv = {
-  log: vi.fn(),
-  error: vi.fn(),
+const runtime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
   exit: ((code: number) => {
     throw new Error(`unexpected exit ${code}`);
   }) as RuntimeEnv["exit"],

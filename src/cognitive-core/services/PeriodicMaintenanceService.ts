@@ -9,7 +9,7 @@
  */
 
 import { createSubsystemLogger } from "../../logging/subsystem.js";
-import type { UnifiedNSEM2Core } from "../mind/nsem/UnifiedNSEM2Core.js";
+import type { NSEMFusionCore } from "../NSEMFusionCore.js";
 import { generateId } from "../utils/common.js";
 
 const log = createSubsystemLogger("periodic-maintenance");
@@ -206,7 +206,7 @@ export const DEFAULT_MAINTENANCE_TASKS: MaintenanceTask[] = [
 // ============================================================================
 
 export class PeriodicMaintenanceService {
-  private core: UnifiedNSEM2Core;
+  private core: NSEMFusionCore;
   private config: MaintenanceConfig;
   private tasks: Map<string, MaintenanceTask> = new Map();
   private results: MaintenanceResult[] = [];
@@ -215,7 +215,7 @@ export class PeriodicMaintenanceService {
   private schedulerTimer?: NodeJS.Timeout;
   private maxResultsHistory = 100;
 
-  constructor(core: UnifiedNSEM2Core, config?: Partial<MaintenanceConfig>) {
+  constructor(core: NSEMFusionCore, config?: Partial<MaintenanceConfig>) {
     this.core = core;
     this.config = {
       autoStart: true,
@@ -572,7 +572,7 @@ export class PeriodicMaintenanceService {
 
   private async executeDecay(task: MaintenanceTask, startTime: number): Promise<MaintenanceResult> {
     // 触发核心进化
-    await this.core.evolve();
+    await this.core.evolve("all");
 
     return {
       taskId: task.id,
@@ -658,7 +658,7 @@ export class PeriodicMaintenanceService {
       endTime: Date.now(),
       durationMs: Date.now() - startTime,
       details: {
-        processedCount: stats.edges,
+        processedCount: stats.totalEdges,
         deletedCount,
       },
     };
@@ -847,7 +847,7 @@ export class PeriodicMaintenanceService {
 // ============================================================================
 
 export function createPeriodicMaintenanceService(
-  core: UnifiedNSEM2Core,
+  core: NSEMFusionCore,
   config?: Partial<MaintenanceConfig>,
 ): PeriodicMaintenanceService {
   return new PeriodicMaintenanceService(core, config);

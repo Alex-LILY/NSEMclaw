@@ -121,10 +121,7 @@ describe("runConfigureWizard", () => {
 
     await runConfigureWizard(
       { command: "configure" },
-      {
-        log: vi.fn(),
-        error: vi.fn(),
-        exit: vi.fn(),
+      { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(),
       },
     );
 
@@ -136,10 +133,7 @@ describe("runConfigureWizard", () => {
   });
 
   it("exits with code 1 when configure wizard is cancelled", async () => {
-    const runtime = {
-      log: vi.fn(),
-      error: vi.fn(),
-      exit: vi.fn(),
+    const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(),
     };
 
     mocks.readConfigFileSnapshot.mockResolvedValue({

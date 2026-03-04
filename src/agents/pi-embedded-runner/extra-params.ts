@@ -6,7 +6,7 @@ import type { NsemclawConfig } from "../../config/config.js";
 import { log } from "./logger.js";
 
 const OPENROUTER_APP_HEADERS: Record<string, string> = {
-  "HTTP-Referer": "https://nsemclaw.ai",
+  "HTTP-Referer": "https://openclaw.ai",
   "X-Title": "Nsemclaw",
 };
 const ANTHROPIC_CONTEXT_1M_BETA = "context-1m-2025-08-07";

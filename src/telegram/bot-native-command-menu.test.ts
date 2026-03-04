@@ -104,6 +104,7 @@ describe("bot-native-command-menu", () => {
       } as unknown as Parameters<typeof syncTelegramMenuCommands>[0]["bot"],
       runtime: {
         log: runtimeLog,
+        warn: vi.fn(),
         error: vi.fn(),
         exit: vi.fn(),
       } as Parameters<typeof syncTelegramMenuCommands>[0]["runtime"],
@@ -139,10 +140,7 @@ describe("bot-native-command-menu", () => {
           setMyCommands,
         },
       } as unknown as Parameters<typeof syncTelegramMenuCommands>[0]["bot"],
-      runtime: {
-        log: vi.fn(),
-        error: vi.fn(),
-        exit: vi.fn(),
+      runtime: { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn(),
       } as Parameters<typeof syncTelegramMenuCommands>[0]["runtime"],
       commandsToRegister: [{ command: "cmd", description: "Command" }],
     });
@@ -166,6 +164,7 @@ describe("bot-native-command-menu", () => {
       } as unknown as Parameters<typeof syncTelegramMenuCommands>[0]["bot"],
       runtime: {
         log: vi.fn(),
+        warn: vi.fn(),
         error: runtimeError,
         exit: vi.fn(),
       } as Parameters<typeof syncTelegramMenuCommands>[0]["runtime"],

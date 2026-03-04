@@ -5,7 +5,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { isRich, theme } from "../terminal/theme.js";
 
-const SEARCH_TOOL = "https://docs.nsemclaw.ai/mcp.SearchNsemclaw";
+const SEARCH_TOOL = "https://docs.openclaw.ai/mcp.SearchNsemclaw";
 const SEARCH_TIMEOUT_MS = 30_000;
 const DEFAULT_SNIPPET_MAX = 220;
 
@@ -160,12 +160,12 @@ async function renderMarkdown(markdown: string, runtime: RuntimeEnv) {
 export async function docsSearchCommand(queryParts: string[], runtime: RuntimeEnv) {
   const query = queryParts.join(" ").trim();
   if (!query) {
-    const docs = formatDocsLink("/", "docs.nsemclaw.ai");
+    const docs = formatDocsLink("/", "docs.openclaw.ai");
     if (isRich()) {
       runtime.log(`${theme.muted("Docs:")} ${docs}`);
       runtime.log(`${theme.muted("Search:")} ${formatCliCommand('nsemclaw docs "your query"')}`);
     } else {
-      runtime.log("Docs: https://docs.nsemclaw.ai/");
+      runtime.log("Docs: https://docs.openclaw.ai/");
       runtime.log(`Search: ${formatCliCommand('nsemclaw docs "your query"')}`);
     }
     return;

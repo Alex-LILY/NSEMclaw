@@ -24,7 +24,7 @@ describe("logger helpers", () => {
   it("formats messages through runtime log/error", () => {
     const log = vi.fn();
     const error = vi.fn();
-    const runtime: RuntimeEnv = { log, error, exit: vi.fn() };
+    const runtime: RuntimeEnv = { log, warn: vi.fn(), error, exit: vi.fn() };
 
     logInfo("info", runtime);
     logWarn("warn", runtime);

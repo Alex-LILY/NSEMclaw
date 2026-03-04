@@ -77,6 +77,7 @@ class FakeWebSocket implements MattermostWebSocketLike {
 const testRuntime = (): RuntimeEnv =>
   ({
     log: vi.fn(),
+    warn: vi.fn(),
     error: vi.fn(),
     exit: ((code: number): never => {
       throw new Error(`exit ${code}`);

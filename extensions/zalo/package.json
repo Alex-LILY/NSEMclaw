@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/zalo",
-  "version": "2026.2.27",
+  "version": "2026.3.4",
   "description": "Nsemclaw Zalo channel plugin",
   "type": "module",
   "dependencies": {

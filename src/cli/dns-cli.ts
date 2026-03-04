@@ -105,7 +105,7 @@ export function registerDnsCli(program: Command) {
     .description("广域发现的 DNS 助手（Tailscale + CoreDNS）")
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dns", "docs.nsemclaw.ai/cli/dns")}\n`,
+      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dns", "docs.openclaw.ai/cli/dns")}\n`,
     );
 
   dns

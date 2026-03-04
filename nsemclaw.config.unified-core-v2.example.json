@@ -1,0 +1,52 @@
+{
+  "agents": {
+    "defaults": {
+      "memorySearch": {
+        "enabled": true,
+        "provider": "auto",
+        "sources": ["memory", "sessions"]
+      },
+      "unifiedCoreV2": {
+        "enabled": true,
+        "mode": "three-tier",
+        "extraction": {
+          "enabled": true,
+          "sections": {
+            "user": true,
+            "agent": true,
+            "tool": false
+          }
+        },
+        "session": {
+          "enabled": true,
+          "maxMessages": 50
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "default",
+        "unifiedCoreV2": {
+          "enabled": true,
+          "mode": "three-tier"
+        }
+      },
+      {
+        "id": "agent-with-hybrid",
+        "unifiedCoreV2": {
+          "enabled": true,
+          "mode": "hybrid"
+        }
+      },
+      {
+        "id": "agent-with-nsem2",
+        "unifiedCoreV2": {
+          "enabled": false
+        },
+        "nsem": {
+          "enabled": true
+        }
+      }
+    ]
+  }
+}

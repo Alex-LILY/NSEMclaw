@@ -53,7 +53,7 @@ export async function noteSecurityWarnings(cfg: NsemclawConfig) {
   const saferRemoteAccessLines = [
     "  Safer remote access: keep bind loopback and use Tailscale Serve/Funnel or an SSH tunnel.",
     "  Example tunnel: ssh -N -L 18789:127.0.0.1:18789 user@gateway-host",
-    "  Docs: https://docs.nsemclaw.ai/gateway/remote",
+    "  Docs: https://docs.openclaw.ai/gateway/remote",
   ];
 
   if (isExposed) {

@@ -63,7 +63,7 @@ import {
 } from "./doctor-gateway-services.js";
 
 function makeDoctorIo() {
-  return { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn() };
 }
 
 function makeDoctorPrompts() {
@@ -201,7 +201,7 @@ describe("maybeScanExtraGatewayServices", () => {
       },
     ]);
 
-    const runtime = { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
+    const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn() };
     const prompter = {
       confirm: vi.fn(),
       confirmRepair: vi.fn(),

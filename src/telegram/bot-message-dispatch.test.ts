@@ -147,9 +147,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
   }
 
   function createRuntime(): Parameters<typeof dispatchTelegramMessage>[0]["runtime"] {
-    return {
-      log: vi.fn(),
-      error: vi.fn(),
+    return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
       exit: () => {
         throw new Error("exit");
       },

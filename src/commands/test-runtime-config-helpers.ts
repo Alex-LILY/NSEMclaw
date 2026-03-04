@@ -15,16 +15,19 @@ export const baseConfigSnapshot = {
 
 export type TestRuntime = {
   log: MockFn<RuntimeEnv["log"]>;
+  warn: MockFn<RuntimeEnv["warn"]>;
   error: MockFn<RuntimeEnv["error"]>;
   exit: MockFn<RuntimeEnv["exit"]>;
 };
 
 export function createTestRuntime(): TestRuntime {
   const log = vi.fn() as MockFn<RuntimeEnv["log"]>;
+  const warn = vi.fn() as MockFn<RuntimeEnv["warn"]>;
   const error = vi.fn() as MockFn<RuntimeEnv["error"]>;
   const exit = vi.fn((_: number) => undefined) as MockFn<RuntimeEnv["exit"]>;
   return {
     log,
+    warn,
     error,
     exit,
   };
