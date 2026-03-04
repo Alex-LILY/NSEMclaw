@@ -274,8 +274,8 @@ pnpm start
 - [OpenClaw](https://github.com/nsemclaw/openclaw) - 原始框架
 - [MiniMax](https://platform.minimax.io) - AI 模型支持
 - [Maton](https://github.com/maton-ai/maton) - 邮件网关
-- [QMD](https://github.com/tobilu/qmd) - 向量记忆搜索
-- [BGE Embeddings](https://github.com/bgerp/bge-m3) - 向量嵌入模型
+- [QMD](https://github.com/asyncai/qmd) - 向量记忆搜索
+- [FlagEmbedding (BGE)](https://github.com/FlagOpen/FlagEmbedding) - 向量嵌入模型
 - [GGML/llama.cpp](https://github.com/ggerganov/ggml) - 本地推理框架
 
 ---
