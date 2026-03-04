@@ -155,7 +155,7 @@ export function buildGatewayConnectionDetails(
         "- keep gateway.bind=loopback and use an SSH tunnel (ssh -N -L 18789:127.0.0.1:18789 user@gateway-host)",
         "- or use Tailscale Serve/Funnel for HTTPS remote access",
         "Doctor: nsemclaw doctor --fix",
-        "Docs: https://docs.nsemclaw.ai/gateway/remote",
+        "Docs: https://docs.openclaw.ai/gateway/remote",
       ].join("\n"),
     );
   }

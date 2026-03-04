@@ -18,9 +18,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import { agentCliCommand } from "./agent-via-gateway.js";
 import { agentCommand } from "./agent.js";
 
-const runtime: RuntimeEnv = {
-  log: vi.fn(),
-  error: vi.fn(),
+const runtime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
   exit: vi.fn(),
 };
 

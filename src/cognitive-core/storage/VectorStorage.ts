@@ -789,9 +789,17 @@ export function resetVectorStorage(): void {
 }
 
 /**
+ * 向量存储统计信息
+ */
+export interface VectorStorageStats {
+  instances: number;
+  refs: Record<string, number>;
+}
+
+/**
  * 获取当前活跃的存储实例数量（用于调试/监控）
  */
-export function getVectorStorageStats(): { instances: number; refs: Record<string, number> } {
+export function getVectorStorageStats(): VectorStorageStats {
   return {
     instances: storageInstances.size,
     refs: Object.fromEntries(storageRefCounts),

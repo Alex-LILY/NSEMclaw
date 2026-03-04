@@ -182,7 +182,7 @@ export async function startGatewaySidecars(params: {
     params.log.warn(`qmd memory startup initialization failed: ${String(err)}`);
   });
 
-  // 启动认知核心记忆系统
+  // 启动NSEM认知核心记忆系统
   void startGatewayCognitiveCore({ cfg: params.cfg, log: params.log }).catch((err) => {
     params.log.warn(`cognitive core startup initialization failed: ${String(err)}`);
   });

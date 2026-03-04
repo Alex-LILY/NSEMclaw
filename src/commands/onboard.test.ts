@@ -29,9 +29,7 @@ vi.mock("./onboard-helpers.js", () => ({
 const { onboardCommand } = await import("./onboard.js");
 
 function makeRuntime(): RuntimeEnv {
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn() as unknown as RuntimeEnv["exit"],
   };
 }

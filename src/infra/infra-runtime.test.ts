@@ -38,9 +38,7 @@ describe("infra runtime", () => {
         stdout: "",
         stderr: "",
       });
-      const runtime: RuntimeEnv = {
-        log: vi.fn(),
-        error: vi.fn(),
+      const runtime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
         exit: vi.fn(),
       };
       await ensureBinary("node", exec, runtime);
@@ -53,7 +51,7 @@ describe("infra runtime", () => {
       const exit = vi.fn(() => {
         throw new Error("exit");
       });
-      await expect(ensureBinary("ghost", exec, { log: vi.fn(), error, exit })).rejects.toThrow(
+      await expect(ensureBinary("ghost", exec, { log: vi.fn(), warn: vi.fn(), error, exit })).rejects.toThrow(
         "exit",
       );
       expect(error).toHaveBeenCalledWith("Missing required binary: ghost. Please install it.");

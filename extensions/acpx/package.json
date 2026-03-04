@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/acpx",
-  "version": "2026.2.27",
+  "version": "2026.3.5",
   "description": "Nsemclaw ACP runtime backend via acpx",
   "type": "module",
   "dependencies": {

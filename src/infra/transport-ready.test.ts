@@ -13,7 +13,7 @@ vi.mock("./backoff.js", () => ({
 }));
 
 function createRuntime() {
-  return { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn() };
 }
 
 describe("waitForTransportReady", () => {

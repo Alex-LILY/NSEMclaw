@@ -129,6 +129,36 @@ export interface ImportanceScore {
 }
 
 // ============================================================================
+// 配置类型
+// ============================================================================
+
+/** 重要性评分配置 */
+export interface ImportanceConfig {
+  /** 默认权重 */
+  defaultWeights: ImportanceDimensions;
+  /** 是否启用自适应模式 */
+  adaptiveMode: boolean;
+  /** 最大历史记录大小 */
+  maxHistorySize: number;
+  /** 默认规则 */
+  defaultRules: ImportanceRule[];
+}
+
+/** 默认重要性配置 */
+export const DEFAULT_IMPORTANCE_CONFIG: ImportanceConfig = {
+  defaultWeights: {
+    semantic: 0.35,
+    temporal: 0.15,
+    emotional: 0.15,
+    relational: 0.15,
+    explicit: 0.2,
+  },
+  adaptiveMode: true,
+  maxHistorySize: 1000,
+  defaultRules: [],
+};
+
+// ============================================================================
 // 默认规则
 // ============================================================================
 

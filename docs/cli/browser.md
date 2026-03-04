@@ -56,7 +56,7 @@ nsemclaw browser --browser-profile work tabs
 
 ```bash
 nsemclaw browser tabs
-nsemclaw browser open https://docs.nsemclaw.ai
+nsemclaw browser open https://docs.openclaw.ai
 nsemclaw browser focus <targetId>
 nsemclaw browser close <targetId>
 ```

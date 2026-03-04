@@ -14,11 +14,11 @@ import { createEmbeddingProvider } from "../../../memory/embeddings.js";
 
 export interface UnifiedEmbeddingConfig {
   /** Nsemclaw 主配置 */
-  cfg: NsemclawConfig;
+  cfg?: NsemclawConfig;
   /** Agent ID */
-  agentId: string;
+  agentId?: string;
   /** 记忆搜索配置 */
-  memoryConfig: ResolvedMemorySearchConfig;
+  memoryConfig?: ResolvedMemorySearchConfig;
 }
 
 /**
@@ -50,6 +50,14 @@ export class UnifiedEmbeddingEngine {
    */
   async initialize(): Promise<void> {
     const { cfg, memoryConfig } = this.config;
+
+    // 如果没有提供配置，使用默认配置
+    if (!cfg || !memoryConfig) {
+      console.log("⚠️  UnifiedEmbeddingEngine: 未提供完整配置，使用默认配置");
+      // 使用简单的默认实现
+      this.embeddingProvider = null;
+      return;
+    }
 
     // 1. 主嵌入模型 (从现有配置)
     const embeddingResult = await createEmbeddingProvider({
@@ -116,14 +124,15 @@ export class UnifiedEmbeddingEngine {
       if (rerankerModel) {
         try {
           console.log(`🔄 首次使用，加载重排模型: ${rerankerModel}`);
+          const { cfg, memoryConfig } = this.config;
           const rerankerResult = await createEmbeddingProvider({
-            config: this.cfg,
+            config: cfg ?? {} as NsemclawConfig,
             provider: "local",
             model: rerankerModel,
             fallback: "none",
             local: {
               modelPath: rerankerModel,
-              modelCacheDir: this.memoryConfig.local?.modelCacheDir,
+              modelCacheDir: memoryConfig?.local?.modelCacheDir,
             },
           });
           this.rerankerProvider = rerankerResult.provider;
@@ -141,6 +150,10 @@ export class UnifiedEmbeddingEngine {
 
     // 使用嵌入模型作为重排器 (简化实现)
     // 实际应该用 cross-encoder，但这里先用双塔近似
+    if (!this.rerankerProvider) {
+      // 重排模型加载失败，返回原始分数
+      return candidates.map((c) => ({ ...c, rerankScore: c.score }));
+    }
     const queryEmbedding = await this.rerankerProvider.embedQuery(query);
 
     const reranked = await Promise.all(
@@ -213,6 +226,8 @@ export class UnifiedEmbeddingEngine {
     const cfg = this.config.cfg;
     const agentId = this.config.agentId;
 
+    if (!cfg || !agentId) return null;
+
     const agentCfg = (
       cfg.agents?.[agentId as keyof typeof cfg.agents] as { nsem?: { rerankerModel?: string } }
     )?.nsem;
@@ -224,6 +239,8 @@ export class UnifiedEmbeddingEngine {
   private getExpansionModelPath(): string | null {
     const cfg = this.config.cfg;
     const agentId = this.config.agentId;
+
+    if (!cfg || !agentId) return null;
 
     const agentCfg = (
       cfg.agents?.[agentId as keyof typeof cfg.agents] as { nsem?: { expansionModel?: string } }
@@ -238,9 +255,9 @@ export class UnifiedEmbeddingEngine {
  * 创建统一嵌入引擎 (工厂函数)
  */
 export async function createUnifiedEmbeddingEngine(
-  cfg: NsemclawConfig,
-  agentId: string,
-  memoryConfig: ResolvedMemorySearchConfig,
+  cfg?: NsemclawConfig,
+  agentId?: string,
+  memoryConfig?: ResolvedMemorySearchConfig,
 ): Promise<UnifiedEmbeddingEngine> {
   const engine = new UnifiedEmbeddingEngine({ cfg, agentId, memoryConfig });
   await engine.initialize();

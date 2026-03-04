@@ -21,6 +21,7 @@ import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
 import { createSubagentsTool } from "./tools/subagents-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
+import { createLocalVisionTool } from "../mcp/tools/analyze-image.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
 
 export function createNsemclawTools(options?: {
@@ -94,6 +95,10 @@ export function createNsemclawTools(options?: {
   });
   // Message tool removed - depends on deleted web/WhatsApp module
   const messageTool = null;
+  
+  // 本地视觉分析工具 (按需加载)
+  const localVisionTool = createLocalVisionTool();
+  
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -162,6 +167,7 @@ export function createNsemclawTools(options?: {
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
+    ...(localVisionTool ? [localVisionTool] : []),
   ];
 
   const pluginTools = resolvePluginTools({

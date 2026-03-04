@@ -48,9 +48,7 @@ vi.mock("./onboard-helpers.js", async (importActual) => {
 import { promptGatewayConfig } from "./configure.gateway.js";
 
 function makeRuntime(): RuntimeEnv {
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn(),
   };
 }

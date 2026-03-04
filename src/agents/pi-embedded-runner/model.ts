@@ -141,11 +141,11 @@ const LOCAL_PROVIDER_HINTS: Record<string, string> = {
   ollama:
     "Ollama requires authentication to be registered as a provider. " +
     'Set OLLAMA_API_KEY="ollama-local" (any value works) or run "nsemclaw configure". ' +
-    "See: https://docs.nsemclaw.ai/providers/ollama",
+    "See: https://docs.openclaw.ai/providers/ollama",
   vllm:
     "vLLM requires authentication to be registered as a provider. " +
     'Set VLLM_API_KEY (any value works) or run "nsemclaw configure". ' +
-    "See: https://docs.nsemclaw.ai/providers/vllm",
+    "See: https://docs.openclaw.ai/providers/vllm",
 };
 
 function buildUnknownModelError(provider: string, modelId: string): string {

@@ -296,6 +296,15 @@ const entries: SubCliEntry[] = [
       mod.registerCompletionCli(program);
     },
   },
+  {
+    name: "local-model",
+    description: "管理本地 GGUF 模型 (embedding, reranker, vision, decision)",
+    hasSubcommands: true,
+    register: async (program) => {
+      const mod = await import("../local-model-cli.js");
+      mod.registerLocalModelCli(program);
+    },
+  },
 ];
 
 export function getSubCliEntries(): SubCliEntry[] {

@@ -97,7 +97,7 @@ export function registerGatewayCli(program: Command) {
             ["nsemclaw gateway status", "显示服务状态和探测可达性。"],
             ["nsemclaw gateway discover", "查找本地和广域网关信标。"],
             ["nsemclaw gateway call health", "直接调用网关 RPC 方法。"],
-          ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "docs.nsemclaw.ai/cli/gateway")}\n`,
+          ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "docs.openclaw.ai/cli/gateway")}\n`,
       ),
   );
 

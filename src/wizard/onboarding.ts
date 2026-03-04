@@ -53,7 +53,7 @@ async function requireRiskAcknowledgement(params: {
       "nsemclaw security audit --deep",
       "nsemclaw security audit --fix",
       "",
-      "Must read: https://docs.nsemclaw.ai/gateway/security",
+      "Must read: https://docs.openclaw.ai/gateway/security",
     ].join("\n"),
     "Security",
   );
@@ -88,7 +88,7 @@ export async function runOnboardingWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.nsemclaw.ai/gateway/configuration",
+          "Docs: https://docs.openclaw.ai/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );

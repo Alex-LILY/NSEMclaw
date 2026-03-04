@@ -75,9 +75,7 @@ afterEach(() => {
   envSnapshot.restore();
 });
 
-const runtime: RuntimeEnv = {
-  log: vi.fn(),
-  error: vi.fn(),
+const runtime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
   exit: vi.fn(() => {
     throw new Error("exit");
   }),

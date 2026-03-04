@@ -194,7 +194,7 @@ export async function setupSkills(
       runtime.log(
         `Tip: run \`${formatCliCommand("nsemclaw doctor")}\` to review skills + requirements.`,
       );
-      runtime.log("Docs: https://docs.nsemclaw.ai/skills");
+      runtime.log("Docs: https://docs.openclaw.ai/skills");
     }
   }
 

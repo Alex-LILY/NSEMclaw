@@ -21,7 +21,7 @@ import type {
   MemoryEmbeddingProbeResult,
   MemorySource,
 } from "../types.js";
-import type { NSEM2Core } from "../../cognitive-core/mind/nsem/NSEM2Core.js";
+import type { NSEMFusionCore } from "../../cognitive-core/NSEMFusionCore.js";
 import type { NsemclawConfig } from "../../config/config.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { requireNodeSqlite } from "../sqlite.js";
@@ -62,7 +62,7 @@ export interface FusionSearchResult extends MemorySearchResult {
  * 实现统一的 MemorySearchManager 接口，底层整合 NSEM 和 Builtin Memory
  */
 export class NSEMFusionAdapter implements MemorySearchManager {
-  // 支持 NSEM2Core 或 UnifiedNSEM2Core（通过 any 绕过类型检查）
+  // 支持 NSEMFusionCore（通过 any 绕过类型检查）
   private nsem: any;
   private config: NSEMFusionConfig;
   private nsemConfig: NsemclawConfig;

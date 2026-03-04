@@ -13,7 +13,7 @@
 import path from "node:path";
 import { homedir } from "node:os";
 import type { DatabaseSync } from "node:sqlite";
-import type { NSEM2Core } from "../../cognitive-core/mind/nsem/NSEM2Core.js";
+import type { NSEMFusionCore } from "../../cognitive-core/NSEMFusionCore.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { requireNodeSqlite } from "../sqlite.js";
 import type { MemorySyncProgressUpdate } from "../types.js";
@@ -49,7 +49,7 @@ export interface MigrationStatus {
  */
 export class MigrationController {
   private agentId: string;
-  private nsem: any;  // 支持 NSEM2Core 或 UnifiedNSEM2Core
+  private nsem: any;  // 支持 NSEMFusionCore
   private threshold: number;
   private db: DatabaseSync | null = null;
   private closed = false;

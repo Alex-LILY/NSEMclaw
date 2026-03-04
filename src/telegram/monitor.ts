@@ -33,14 +33,20 @@ export type MonitorTelegramOpts = {
 };
 
 export function createTelegramRunnerOptions(cfg: NsemclawConfig): RunOptions<unknown> {
+  // Use configured timeout or default to 60s for high-latency networks
+  const telegramCfg = cfg.channels?.telegram;
+  const timeoutSeconds =
+    typeof telegramCfg?.timeoutSeconds === "number" && Number.isFinite(telegramCfg.timeoutSeconds)
+      ? Math.max(30, telegramCfg.timeoutSeconds)
+      : 60;
   return {
     sink: {
       concurrency: resolveAgentMaxConcurrent(cfg),
     },
     runner: {
       fetch: {
-        // Match grammY defaults
-        timeout: 30,
+        // Increase timeout for high-latency networks (e.g., 1300ms RTT to Telegram API)
+        timeout: timeoutSeconds,
         // Request reactions without dropping default update types.
         allowed_updates: resolveTelegramAllowedUpdates(),
       },

@@ -49,9 +49,7 @@ import { sessionsCommand } from "./sessions.js";
 function createRuntime(): { runtime: RuntimeEnv; logs: string[] } {
   const logs: string[] = [];
   return {
-    runtime: {
-      log: (msg: unknown) => logs.push(String(msg)),
-      error: vi.fn(),
+    runtime: { log: (msg: unknown) => logs.push(String(msg)), warn: vi.fn(), error: vi.fn(),
       exit: vi.fn(),
     },
     logs,

@@ -547,7 +547,7 @@ export function registerMemoryCli(program: Command) {
           ["nsemclaw memory index --force", "Force a full reindex."],
           ['nsemclaw memory search --query "deployment notes"', "Search indexed memory entries."],
           ["nsemclaw memory status --json", "Output machine-readable JSON."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/memory", "docs.nsemclaw.ai/cli/memory")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/memory", "docs.openclaw.ai/cli/memory")}\n`,
     );
 
   memory

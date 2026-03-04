@@ -186,10 +186,10 @@ const GITHUB_MODELS_BASE_URL = "https://github.com/Alex-LILY/alex-lily-profile/r
 
 export const NSEM_PREDEFINED_MODELS: Record<string, ModelDownloadConfig> = {
   embedding: {
-    name: "embeddinggemma-300M-Q8_0",
+    name: "embeddinggemma-300m-qat-Q8_0",
     hfPath: "hf:ggml-org/embeddinggemma-300m-qat-q8_0-GGUF/embeddinggemma-300m-qat-Q8_0.gguf",
-    url: `${GITHUB_MODELS_BASE_URL}/hf_ggml-org_embeddinggemma-300M-Q8_0.gguf`,
-    localPath: path.join(getModelCacheDir(), "hf_ggml-org_embeddinggemma-300M-Q8_0.gguf"),
+    url: `${GITHUB_MODELS_BASE_URL}/hf_ggml-org_embeddinggemma-300m-qat-Q8_0.gguf`,
+    localPath: path.join(getModelCacheDir(), "hf_ggml-org_embeddinggemma-300m-qat-Q8_0.gguf"),
     expectedSize: 329_000_000, // ~314MB (实际文件大小)
   },
   expansion: {
@@ -206,7 +206,88 @@ export const NSEM_PREDEFINED_MODELS: Record<string, ModelDownloadConfig> = {
     localPath: path.join(getModelCacheDir(), "bge-reranker-v2-m3-q4_k_m.gguf"),
     expectedSize: 438_000_000, // ~438MB (实际文件大小)
   },
+  decision: {
+    name: "phi-4-mini-instruct-q4_k_m",
+    hfPath: "hf:matrixportalx/Phi-4-mini-instruct-Q4_K_M-GGUF/phi-4-mini-instruct-q4_k_m.gguf",
+    url: `https://huggingface.co/matrixportalx/Phi-4-mini-instruct-Q4_K_M-GGUF/resolve/main/phi-4-mini-instruct-q4_k_m.gguf`,
+    localPath: path.join(getModelCacheDir(), "phi-4-mini-instruct-q4_k_m.gguf"),
+    expectedSize: 2_500_000_000, // ~2.5GB
+  },
+  vision: {
+    name: "llava-phi-3-mini-int4",
+    hfPath: "hf:xtuner/llava-phi-3-mini-gguf/llava-phi-3-mini-int4.gguf",
+    url: `https://huggingface.co/xtuner/llava-phi-3-mini-gguf/resolve/main/llava-phi-3-mini-int4.gguf`,
+    localPath: path.join(getModelCacheDir(), "llava-phi-3-mini-int4.gguf"),
+    expectedSize: 1_400_000_000, // ~1.3-1.4GB
+  },
+  mmproj: {
+    name: "llava-phi-3-mini-mmproj-f16",
+    hfPath: "hf:xtuner/llava-phi-3-mini-gguf/llava-phi-3-mini-mmproj-f16.gguf",
+    url: `https://huggingface.co/xtuner/llava-phi-3-mini-gguf/resolve/main/llava-phi-3-mini-mmproj-f16.gguf`,
+    localPath: path.join(getModelCacheDir(), "llava-phi-3-mini-mmproj-f16.gguf"),
+    expectedSize: 220_000_000, // ~220MB
+  },
 };
+
+/**
+ * 决策模型配置 (Decision Model Configs)
+ */
+export const DECISION_MODEL_CONFIGS: Record<string, ModelDownloadConfig & { contextLength: number }> = {
+  minimal: {
+    name: "qwen2.5-1.5b-instruct-q4_k_m",
+    hfPath: "hf:Qwen/Qwen2.5-1.5B-Instruct-GGUF/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+    url: `https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf`,
+    localPath: path.join(getModelCacheDir(), "qwen2.5-1.5b-instruct-q4_k_m.gguf"),
+    expectedSize: 950_000_000, // ~950MB
+    contextLength: 32768,
+  },
+  balanced: {
+    name: "phi-4-mini-instruct-q4_k_m",
+    hfPath: "hf:matrixportalx/Phi-4-mini-instruct-Q4_K_M-GGUF/phi-4-mini-instruct-q4_k_m.gguf",
+    url: `https://huggingface.co/matrixportalx/Phi-4-mini-instruct-Q4_K_M-GGUF/resolve/main/phi-4-mini-instruct-q4_k_m.gguf`,
+    localPath: path.join(getModelCacheDir(), "phi-4-mini-instruct-q4_k_m.gguf"),
+    expectedSize: 2_500_000_000, // ~2.5GB
+    contextLength: 128000,
+  },
+  performance: {
+    name: "qwen2.5-7b-instruct-q4_k_m",
+    hfPath: "hf:Qwen/Qwen2.5-7B-Instruct-GGUF/qwen2.5-7b-instruct-q4_k_m.gguf",
+    url: `https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf`,
+    localPath: path.join(getModelCacheDir(), "qwen2.5-7b-instruct-q4_k_m.gguf"),
+    expectedSize: 4_500_000_000, // ~4.5GB
+    contextLength: 32768,
+  },
+};
+
+/**
+ * 下载决策模型
+ */
+export async function downloadDecisionModel(
+  mode: "minimal" | "balanced" | "performance" = "balanced",
+  onProgress?: (progress: DownloadProgress) => void,
+): Promise<string> {
+  const config = DECISION_MODEL_CONFIGS[mode];
+  return downloadModel(config, onProgress);
+}
+
+/**
+ * 检查决策模型是否就绪
+ */
+export function isDecisionModelReady(
+  mode: "minimal" | "balanced" | "performance" = "balanced",
+): boolean {
+  const config = DECISION_MODEL_CONFIGS[mode];
+  return isModelValid(config.localPath, config.expectedSize);
+}
+
+/**
+ * 获取决策模型路径
+ */
+export function getDecisionModelPath(
+  mode: "minimal" | "balanced" | "performance" = "balanced",
+): string {
+  return resolveUserPath(DECISION_MODEL_CONFIGS[mode].localPath);
+}
 
 /**
  * 下载单个模型

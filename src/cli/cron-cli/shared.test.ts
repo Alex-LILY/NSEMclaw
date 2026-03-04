@@ -6,8 +6,7 @@ import { printCronList } from "./shared.js";
 function createRuntimeLogCapture(): { logs: string[]; runtime: RuntimeEnv } {
   const logs: string[] = [];
   const runtime = {
-    log: (msg: string) => logs.push(msg),
-    error: () => {},
+    log: (msg: string) => logs.push(msg), warn: () => {}, error: () => {},
     exit: () => {},
   } as RuntimeEnv;
   return { logs, runtime };

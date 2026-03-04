@@ -49,7 +49,9 @@ function applyTelegramNetworkWorkarounds(network?: TelegramNetworkConfig): void 
         new Agent({
           connect: {
             autoSelectFamily: autoSelectDecision.value,
-            autoSelectFamilyAttemptTimeout: 300,
+            // Increase timeout for high-latency networks (e.g., 1300ms RTT)
+            // Default 300ms may be too short for some networks
+            autoSelectFamilyAttemptTimeout: 2000,
           },
         }),
       );

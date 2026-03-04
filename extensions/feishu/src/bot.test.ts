@@ -53,6 +53,7 @@ vi.mock("./client.js", () => ({
 function createRuntimeEnv(): RuntimeEnv {
   return {
     log: vi.fn(),
+    warn: vi.fn(),
     error: vi.fn(),
     exit: vi.fn((code: number): never => {
       throw new Error(`exit ${code}`);

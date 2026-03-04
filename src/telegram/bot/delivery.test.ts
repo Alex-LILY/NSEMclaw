@@ -16,7 +16,7 @@ type DeliverWithParams = Omit<
   "chatId" | "token" | "replyToMode" | "textLimit"
 > &
   Partial<Pick<DeliverRepliesParams, "replyToMode" | "textLimit">>;
-type RuntimeStub = Pick<RuntimeEnv, "error" | "log" | "exit">;
+type RuntimeStub = Pick<RuntimeEnv, "log" | "warn" | "error" | "exit">;
 
 vi.mock("../../web/media.js", () => ({
   loadWebMedia: (...args: unknown[]) => loadWebMedia(...args),
@@ -36,8 +36,9 @@ vi.mock("grammy", () => ({
 
 function createRuntime(withLog = true): RuntimeStub {
   return {
-    error: vi.fn(),
     log: withLog ? vi.fn() : vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
     exit: vi.fn(),
   };
 }

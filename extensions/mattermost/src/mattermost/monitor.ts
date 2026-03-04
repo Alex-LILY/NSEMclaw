@@ -88,6 +88,7 @@ function resolveRuntime(opts: MonitorMattermostOpts): RuntimeEnv {
   return (
     opts.runtime ?? {
       log: console.log,
+      warn: console.warn,
       error: console.error,
       exit: (code: number): never => {
         throw new Error(`exit ${code}`);

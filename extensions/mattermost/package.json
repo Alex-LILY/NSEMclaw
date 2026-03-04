@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/mattermost",
-  "version": "2026.2.27",
+  "version": "2026.3.5",
   "description": "Nsemclaw Mattermost channel plugin",
   "type": "module",
   "nsemclaw": {

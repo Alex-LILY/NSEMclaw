@@ -458,3 +458,95 @@ export function exponentialDecay(initial: number, rate: number, time: number): n
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
+
+// ============================================================================
+// 函数工具
+// ============================================================================
+
+/**
+ * 防抖函数
+ * @param fn - 要防抖的函数
+ * @param delay - 延迟时间（毫秒）
+ * @returns 防抖后的函数
+ */
+export function debounce<T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+}
+
+/**
+ * 节流函数
+ * @param fn - 要节流的函数
+ * @param limit - 限制时间（毫秒）
+ * @returns 节流后的函数
+ */
+export function throttle<T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  limit: number
+): (...args: Parameters<T>) => void {
+  let inThrottle = false;
+  return (...args: Parameters<T>) => {
+    if (!inThrottle) {
+      fn(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
+/**
+ * 记忆化函数
+ * @param fn - 要记忆化的函数
+ * @returns 记忆化后的函数
+ */
+export function memoize<T extends (...args: unknown[]) => unknown>(fn: T): T {
+  const cache = new Map<string, ReturnType<T>>();
+  return ((...args: unknown[]): ReturnType<T> => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key)!;
+    const result = fn(...args) as ReturnType<T>;
+    cache.set(key, result);
+    return result;
+  }) as T;
+}
+
+/** UUID 生成器（别名） */
+export const generateUUID = generateId;
+
+/**
+ * 深克隆
+ * @param obj - 要克隆的对象
+ * @returns 克隆后的对象
+ */
+export function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * 深度合并
+ * @param target - 目标对象
+ * @param sources - 源对象列表
+ * @returns 合并后的对象
+ */
+export function mergeDeep<T>(target: T, ...sources: Partial<T>[]): T {
+  const result = { ...target };
+  for (const source of sources) {
+    for (const key in source) {
+      if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+        (result as Record<string, unknown>)[key] = mergeDeep(
+          ((result as Record<string, unknown>)[key] as T) ?? ({} as T),
+          source[key] as Partial<T>
+        );
+      } else {
+        (result as Record<string, unknown>)[key] = source[key] as unknown;
+      }
+    }
+  }
+  return result;
+}

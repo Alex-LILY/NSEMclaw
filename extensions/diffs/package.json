@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/diffs",
-  "version": "2026.2.27",
+  "version": "2026.3.5",
   "private": true,
   "description": "Nsemclaw diff viewer plugin",
   "type": "module",

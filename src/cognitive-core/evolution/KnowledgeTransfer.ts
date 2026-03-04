@@ -549,16 +549,16 @@ export class KnowledgeTransferSystem {
 }
 
 // ============================================================================
-// 内存知识源适配器 (用于 IntegratedNSEM2Core)
+// 内存知识源适配器 (用于 NSEMFusionCore)
 // ============================================================================
 
-import type { IntegratedNSEM2Core } from "../integration/IntegratedNSEM2Core.js";
+import type { NSEMFusionCore } from "../NSEMFusionCore.js";
 
 export class IntegratedNSEM2Adapter implements KnowledgeSourceAdapter {
   sourceId: string;
-  private core: IntegratedNSEM2Core;
+  private core: NSEMFusionCore;
 
-  constructor(core: IntegratedNSEM2Core) {
+  constructor(core: NSEMFusionCore) {
     this.core = core;
     this.sourceId = `nsem2-${core.getConfig().agentId}`;
   }
@@ -610,7 +610,7 @@ export class IntegratedNSEM2Adapter implements KnowledgeSourceAdapter {
     let mergedAtoms = 0;
     let conflicts = 0;
 
-    // 这里简化实现，实际应该调用 IntegratedNSEM2Core 的方法
+    // 这里简化实现，实际应该调用 NSEMFusionCore 的方法
     // 由于 ingest 是异步方法，我们需要批量导入
 
     for (const atom of pkg.atoms) {
@@ -724,7 +724,7 @@ export function createKnowledgeTransferSystem(): KnowledgeTransferSystem {
   return new KnowledgeTransferSystem();
 }
 
-export function createIntegratedNSEM2Adapter(core: IntegratedNSEM2Core): IntegratedNSEM2Adapter {
+export function createIntegratedNSEM2Adapter(core: NSEMFusionCore): IntegratedNSEM2Adapter {
   return new IntegratedNSEM2Adapter(core);
 }
 

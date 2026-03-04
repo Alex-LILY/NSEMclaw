@@ -9,12 +9,18 @@ export async function startGatewayMemoryBackend(params: {
   log: { info?: (msg: string) => void; warn: (msg: string) => void };
 }): Promise<void> {
   const agentIds = listAgentIds(params.cfg);
+  params.log.info?.(`[memory-backend] 发现 ${agentIds.length} 个 agent: ${agentIds.join(", ")}`);
+  
   for (const agentId of agentIds) {
-    if (!resolveMemorySearchConfig(params.cfg, agentId)) {
+    const memoryConfig = resolveMemorySearchConfig(params.cfg, agentId);
+    if (!memoryConfig) {
+      params.log.info?.(`[memory-backend] agent "${agentId}": memorySearch 未启用，跳过`);
       continue;
     }
     const resolved = resolveMemoryBackendConfig({ cfg: params.cfg, agentId });
+    params.log.info?.(`[memory-backend] agent "${agentId}": backend=${resolved.backend}`);
     if (resolved.backend !== "qmd" || !resolved.qmd) {
+      params.log.info?.(`[memory-backend] agent "${agentId}": 不是 qmd 后端，跳过`);
       continue;
     }
 

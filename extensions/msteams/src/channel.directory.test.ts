@@ -1,11 +1,9 @@
 import type { NsemclawConfig, RuntimeEnv } from "nsemclaw/plugin-sdk";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { msteamsPlugin } from "./channel.js";
 
 describe("msteams directory", () => {
-  const runtimeEnv: RuntimeEnv = {
-    log: () => {},
-    error: () => {},
+  const runtimeEnv: RuntimeEnv = { log: () => {}, warn: vi.fn(), error: () => {},
     exit: (code: number): never => {
       throw new Error(`exit ${code}`);
     },

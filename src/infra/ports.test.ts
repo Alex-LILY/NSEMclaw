@@ -32,6 +32,7 @@ describe("ports helpers", () => {
     const runtime = {
       error: vi.fn(),
       log: vi.fn(),
+      warn: vi.fn(),
       exit: vi.fn() as unknown as (code: number) => never,
     };
     // Avoid slow OS port inspection; this test only cares about messaging + exit behavior.
@@ -48,6 +49,7 @@ describe("ports helpers", () => {
     const runtime = {
       error: vi.fn(),
       log: vi.fn(),
+      warn: vi.fn(),
       exit: vi.fn() as unknown as (code: number) => never,
     };
 

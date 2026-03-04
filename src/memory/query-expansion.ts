@@ -782,6 +782,21 @@ export function expandQueryForFts(query: string): {
 export type LlmQueryExpander = (query: string) => Promise<string[]>;
 
 /**
+ * Build FTS query from keywords.
+ * Creates a query string suitable for full-text search.
+ *
+ * @param keywords - Extracted keywords
+ * @returns FTS query string (e.g., "keyword1 AND keyword2")
+ */
+export function buildFtsQuery(keywords: string[]): string {
+  if (keywords.length === 0) {
+    return "";
+  }
+  // Join keywords with AND for stricter matching
+  return keywords.join(" AND ");
+}
+
+/**
  * Expand query with optional LLM assistance.
  * Falls back to local extraction if LLM is unavailable or fails.
  */

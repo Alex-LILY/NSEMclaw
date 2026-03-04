@@ -36,9 +36,7 @@ describe("configureGatewayForOnboarding", () => {
   }
 
   function createRuntime(): RuntimeEnv {
-    return {
-      log: vi.fn(),
-      error: vi.fn(),
+    return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
       exit: vi.fn(),
     };
   }

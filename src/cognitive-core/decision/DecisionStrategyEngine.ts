@@ -1424,6 +1424,24 @@ export function contextFromActivatedMemory(
 }
 
 // ============================================================================
+// 全局实例管理
+// ============================================================================
+
+let globalDecisionEngine: DecisionStrategyEngine | undefined;
+
+export function getDecisionEngine(): DecisionStrategyEngine {
+  if (!globalDecisionEngine) {
+    globalDecisionEngine = createUCBEngine(Math.sqrt(2));
+  }
+  return globalDecisionEngine;
+}
+
+export function resetDecisionEngine(): void {
+  globalDecisionEngine?.destroy();
+  globalDecisionEngine = undefined;
+}
+
+// ============================================================================
 // 类型导出
 // ============================================================================
 

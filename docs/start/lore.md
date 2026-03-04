@@ -119,7 +119,7 @@ In just 3 hours:
 - GitHub renamed: `github.com/nsemclaw/nsemclaw` ✅
 - X handle `@nsemclaw` secured with GOLD CHECKMARK 💰
 - npm packages released under new name
-- Docs migrated to `docs.nsemclaw.ai`
+- Docs migrated to `docs.openclaw.ai`
 - 200K+ views on announcement in 90 minutes
 
 **The Heroes:**

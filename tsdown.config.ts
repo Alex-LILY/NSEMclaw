@@ -52,4 +52,15 @@ export default defineConfig([
     ...baseConfig,
     entry: ["src/hooks/bundled/*/handler.ts", "src/hooks/llm-slug-generator.ts"],
   },
+  // Cognitive Core exports
+  {
+    ...baseConfig,
+    entry: "src/cognitive-core/vision/index.ts",
+    outDir: "dist/cognitive-core/vision",
+  },
+  {
+    ...baseConfig,
+    entry: "src/cognitive-core/utils/model-downloader.ts",
+    outDir: "dist/cognitive-core/utils",
+  },
 ]);

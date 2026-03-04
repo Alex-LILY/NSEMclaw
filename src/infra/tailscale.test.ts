@@ -16,6 +16,7 @@ function createRuntimeWithExitError() {
   return {
     error: vi.fn(),
     log: vi.fn(),
+    warn: vi.fn(),
     exit: ((code: number) => {
       throw new Error(`exit ${code}`);
     }) as (code: number) => never,
@@ -166,6 +167,7 @@ describe("tailscale helpers", () => {
     const runtime = {
       error: vi.fn(),
       log: vi.fn(),
+      warn: vi.fn(),
       exit: vi.fn() as unknown as (code: number) => never,
     };
     const prompt = vi.fn();

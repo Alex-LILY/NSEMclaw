@@ -1,5 +1,5 @@
 /**
- * memory 命令 - 管理认知核心记忆系统
+ * memory 命令 - 管理NSEM认知核心记忆系统
  *
  * 命令:
  * - nsemclaw memory start              # 启动记忆系统
@@ -11,8 +11,11 @@
  * - nsemclaw memory sync [file/path]   # 同步记忆文件到 NSEM
  */
 
-import { getNSEM2Core, clearNSEM2Core } from "../cognitive-core/mind/nsem/NSEM2Core.js";
-import type { NSEM2Core } from "../cognitive-core/mind/nsem/NSEM2Core.js";
+import {
+  getNSEMFusionCore as getNSEM2Core,
+  clearNSEMFusionCore as clearNSEM2Core,
+  NSEMFusionCore as NSEM2Core,
+} from "../cognitive-core/NSEMFusionCore.js";
 import type { MemoryQuery } from "../cognitive-core/types/index.js";
 import { loadConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -51,8 +54,7 @@ async function getMemoryCore(): Promise<NSEM2Core | null> {
       sync: { onSessionStart: false, onSearch: false, watch: false, watchDebounceMs: 1000, intervalMinutes: 0, sessions: { deltaBytes: 0, deltaMessages: 0 } },
       query: { maxResults: 10, minScore: 0.5, hybrid: { weightVector: 0.7, weightKeyword: 0.3 } },
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await getNSEM2Core(cfg, DEFAULT_AGENT_ID, memoryConfig as any);
+    return await getNSEM2Core(DEFAULT_AGENT_ID, { storage: { mode: "fusion" } });
   } catch (err) {
     log.error(`初始化记忆系统失败: ${String(err)}`);
     return null;
@@ -136,10 +138,11 @@ async function searchMemory(query: string, strategy = "exploratory"): Promise<vo
       minStrength: 0.2,
     },
   };
-  const result = await core.activate(queryConfig);
-  console.log(`🔍 搜索结果 (${result.atoms.length} 条):`);
-  for (const item of result.atoms.slice(0, 5)) {
-    console.log(`  - [${item.relevance.toFixed(2)}] ${item.atom.content.slice(0, 100)}...`);
+  const result = await core.retrieve(query, { maxResults: 10 });
+  console.log(`🔍 搜索结果 (${result.items.length} 条):`);
+  for (const item of result.items.slice(0, 5)) {
+    const content = item.content.l1_overview || item.content.l0_abstract || "无内容";
+    console.log(`  - [${item.importance.toFixed(2)}] ${content.slice(0, 100)}...`);
   }
 }
 
@@ -153,7 +156,7 @@ async function evolveMemory(): Promise<void> {
     return;
   }
   console.log("🧬 开始记忆进化...");
-  await core.evolve();
+  await core.evolve("all");
   console.log("✅ 记忆进化完成");
 }
 

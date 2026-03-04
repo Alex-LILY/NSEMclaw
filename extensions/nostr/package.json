@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/nostr",
-  "version": "2026.2.27",
+  "version": "2026.3.5",
   "description": "Nsemclaw Nostr channel plugin for NIP-04 encrypted DMs",
   "type": "module",
   "dependencies": {

@@ -4,6 +4,28 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import { homedir } from "node:os";
+
+// 加载环境变量配置文件
+const envFile = path.join(homedir(), ".nsemclaw", "nsemclaw.env");
+if (fs.existsSync(envFile)) {
+  const envContent = fs.readFileSync(envFile, "utf-8");
+  for (const line of envContent.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) {
+      const [key, ...valueParts] = trimmed.split("=");
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join("=").trim();
+        // 移除引号
+        const cleanValue = value.replace(/^["'](.*)["']$/, "$1");
+        // 只在未设置时才设置（命令行优先级更高）
+        if (!process.env[key]) {
+          process.env[key] = cleanValue;
+        }
+      }
+    }
+  }
+}
 
 const compiler = "tsdown";
 const compilerArgs = ["exec", compiler, "--no-clean"];

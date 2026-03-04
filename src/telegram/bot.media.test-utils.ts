@@ -49,9 +49,7 @@ export async function createBotHandlerWithOptions(options: {
     token: "tok",
     testTimings: TELEGRAM_TEST_TIMINGS,
     ...(options.proxyFetch ? { proxyFetch: options.proxyFetch } : {}),
-    runtime: {
-      log: runtimeLog as (...data: unknown[]) => void,
-      error: runtimeError as (...data: unknown[]) => void,
+    runtime: { log: runtimeLog as (...data: unknown[]) => void, warn: vi.fn(), error: runtimeError as (...data: unknown[]) => void,
       exit: () => {
         throw new Error("exit");
       },

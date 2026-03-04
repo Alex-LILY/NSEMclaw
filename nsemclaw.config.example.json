@@ -1,5 +1,5 @@
 {
-  "_comment": "Nsemclaw NSEM 认知核心配置示例 - 复制到 ~/.nsemclaw/config.json 使用",
+  "_comment": "Nsemclaw NSEM NSEM认知核心配置示例 - 复制到 ~/.nsemclaw/config.json 使用",
 
   "agents": {
     "defaults": {
@@ -13,9 +13,9 @@
         }
       },
 
-      "_comment_nsem": "NSEM 认知核心配置 - 自动根据资源模式加载模型",
+      "_comment_nsem": "NSEM NSEM认知核心配置 - 自动根据资源模式加载模型",
       "nsem": {
-        "_comment": "是否启用 NSEM 认知核心",
+        "_comment": "是否启用 NSEM NSEM认知核心",
         "enabled": true,
 
         "_comment_resourceMode": "资源模式: minimal(极简)|balanced(平衡)|performance(性能)",

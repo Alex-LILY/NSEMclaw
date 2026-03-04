@@ -1,48 +1,71 @@
 /**
- * 决策引擎模块
+ * 决策系统模块 - 智能、情感化、自适应
  *
- * 融合自进化决策记忆系统的决策能力
- * 基于现有的 DecisionStrategyEngine 实现
+ * 导出内容:
+ * - DecisionStrategyEngine: 传统决策引擎（UCB/汤普森采样等）
+ * - DecisionModelEngine: 轻量级LLM决策模型
+ * - EmotionalIntelligence: 情感智能分析
+ * - SmartDecisionService: 整合服务
  */
 
-// 从现有实现导出所有内容
+// 传统决策引擎
 export {
-  // 主类
   DecisionStrategyEngine,
-
-  // 工厂函数
   createDecisionEngine,
-  createEpsilonGreedyEngine,
   createUCBEngine,
+  createEpsilonGreedyEngine,
   createThompsonSamplingEngine,
   createSoftmaxEngine,
-
-  // 辅助函数
-  actionFromMemAtom,
-  contextFromActivatedMemory,
-
-  // 常量
-  DEFAULT_DECISION_ENGINE_CONFIG,
+  getDecisionEngine,
+  resetDecisionEngine,
+  // 类型
+  type Action,
+  type ActionValue,
+  type DecisionContext,
+  type DecisionRecord,
+  type DecisionOutcome,
+  type DecisionResult,
+  type DecisionStrategyType,
+  type StrategyParams,
+  type DecisionEngineConfig,
 } from "./DecisionStrategyEngine.js";
 
-// 类型导出
-export type {
-  Action,
-  ActionValue,
-  BetaDistributionParams,
-  DecisionRecord,
-  DecisionOutcome,
-  DecisionContext,
-  DecisionStrategyType,
-  StrategyParams,
-  EpsilonGreedyParams,
-  UCBParams,
-  ThompsonSamplingParams,
-  SoftmaxParams,
-  DecisionEngineConfig,
-  DecisionResult,
-  StrategyPerformance,
-} from "./DecisionStrategyEngine.js";
+// 决策模型引擎
+export {
+  DecisionModelEngine,
+  createDecisionModelEngine,
+  getDecisionModelEngine,
+  resetDecisionModelEngine,
+  // 类型
+  type DecisionModelConfig,
+  type ToolDecisionRequest,
+  type SubagentDecisionRequest,
+  type ReplyDecisionRequest,
+  type MemoryDecisionRequest,
+  type DecisionRequest,
+  type EmotionalContext,
+  type UserProfile,
+  type RichDecisionContext,
+  type EngineAdvice,
+  type DecisionResponse,
+} from "./DecisionModelEngine.js";
 
-// 默认导出
-export { default } from "./DecisionStrategyEngine.js";
+// 情感智能
+export {
+  EmotionalIntelligence,
+  createEmotionalIntelligence,
+  getEmotionalIntelligence,
+  resetEmotionalIntelligence,
+  // 类型
+  type EmotionAnalysisOptions,
+} from "./EmotionalIntelligence.js";
+
+// 智能决策服务
+export {
+  SmartDecisionService,
+  createSmartDecisionService,
+  getSmartDecisionService,
+  resetSmartDecisionService,
+  // 类型
+  type SmartDecisionConfig,
+} from "./SmartDecisionService.js";

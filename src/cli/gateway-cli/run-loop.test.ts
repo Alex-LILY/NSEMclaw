@@ -81,9 +81,7 @@ function createRuntimeWithExitSignal(exitCallOrder?: string[]) {
   const exited = new Promise<number>((resolve) => {
     resolveExit = resolve;
   });
-  const runtime = {
-    log: vi.fn(),
-    error: vi.fn(),
+  const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn((code: number) => {
       exitCallOrder?.push("exit");
       resolveExit(code);
@@ -95,6 +93,7 @@ function createRuntimeWithExitSignal(exitCallOrder?: string[]) {
 type GatewayCloseFn = (...args: unknown[]) => Promise<void>;
 type LoopRuntime = {
   log: (...args: unknown[]) => void;
+  warn: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
   exit: (code: number) => void;
 };
@@ -194,9 +193,7 @@ describe("runGatewayLoop", () => {
       start.mockRejectedValueOnce(new Error("stop-loop"));
 
       const { runGatewayLoop } = await import("./run-loop.js");
-      const runtime = {
-        log: vi.fn(),
-        error: vi.fn(),
+      const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
         exit: vi.fn(),
       };
       const loopPromise = runGatewayLoop({
@@ -281,7 +278,7 @@ describe("runGatewayLoop", () => {
         .mockResolvedValueOnce({ close: closeFirst })
         .mockResolvedValueOnce({ close: closeSecond })
         .mockRejectedValueOnce(new Error("stop-loop"));
-      const runtime = { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
+      const runtime = { log: vi.fn(), warn: vi.fn(), error: vi.fn(), exit: vi.fn() };
       const { runGatewayLoop } = await import("./run-loop.js");
       const loopPromise = runGatewayLoop({
         start: start as unknown as Parameters<typeof runGatewayLoop>[0]["start"],

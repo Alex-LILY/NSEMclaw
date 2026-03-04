@@ -4,6 +4,7 @@ import type { WizardPrompter } from "../../../wizard/prompts.js";
 
 export const makeRuntime = (overrides: Partial<RuntimeEnv> = {}): RuntimeEnv => ({
   log: vi.fn(),
+  warn: vi.fn(),
   error: vi.fn(),
   exit: vi.fn((code: number) => {
     throw new Error(`exit:${code}`);

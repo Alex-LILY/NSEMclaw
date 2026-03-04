@@ -1,5 +1,5 @@
 /**
- * 三层记忆存储系统 - Three Tier Memory Store
+ * NSEM记忆存储系统 - Three Tier Memory Store
  *
  * 实现基于认知心理学的工作记忆-短期记忆-长期记忆架构：
  * - 工作记忆 (Working Memory): 当前活跃记忆，容量限制 10-20 项
@@ -16,6 +16,9 @@
 
 import type { MemAtom } from "../types/index.js";
 import { LRUCache, exponentialDecay, clamp } from "../utils/common.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+
+const log = createSubsystemLogger("memory-tier");
 
 // ============================================================================
 // 配置常量
@@ -194,7 +197,7 @@ const DEFAULT_CONFIG: ThreeTierMemoryConfig = {
 };
 
 // ============================================================================
-// 三层记忆存储系统
+// NSEM记忆存储系统
 // ============================================================================
 
 export class ThreeTierMemoryStore {
@@ -234,7 +237,7 @@ export class ThreeTierMemoryStore {
     );
     this.workingMemory = new LRUCache<string, TieredMemoryItem>(capacity);
 
-    console.log(`🧠 三层记忆存储系统初始化完成`);
+    console.log(`🧠 NSEM记忆存储系统初始化完成`);
     console.log(`   工作记忆容量: ${capacity}`);
     console.log(`   自动升降级: ${this.config.autoTierTransition ? "启用" : "禁用"}`);
   }
@@ -250,7 +253,7 @@ export class ThreeTierMemoryStore {
     if (this.isRunning) return;
 
     this.isRunning = true;
-    console.log(`🧠 三层记忆存储系统启动`);
+    console.log(`🧠 NSEM记忆存储系统启动`);
     console.log(
       `   工作记忆: ${this.workingMemory.size()}/${this.workingMemory.getStats().maxSize}`,
     );
@@ -282,7 +285,7 @@ export class ThreeTierMemoryStore {
       this.decayCalculationTimer = undefined;
     }
 
-    console.log(`🛑 三层记忆存储系统已停止`);
+    console.log(`🛑 NSEM记忆存储系统已停止`);
   }
 
   // ========================================================================
@@ -550,7 +553,7 @@ export class ThreeTierMemoryStore {
       this.workingMemory.set(atom.id, item);
     }
 
-    console.log(`✨ 新记忆摄入: ${atom.id.slice(0, 8)}... (工作记忆)`);
+    log.debug(`✨ 新记忆摄入: ${atom.id.slice(0, 8)}... (工作记忆)`);
     return item;
   }
 
@@ -680,7 +683,7 @@ export class ThreeTierMemoryStore {
     };
     this._emitTransitionEvent(event);
 
-    console.log(
+    log.debug(
       `🔄 记忆层级迁移: ${atomId.slice(0, 8)}... ${sourceTier} → ${targetTier} (${reason})`,
     );
     return true;

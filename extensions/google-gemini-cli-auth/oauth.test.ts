@@ -310,7 +310,7 @@ describe("loginGeminiCliOAuth", () => {
         });
       }
       if (url === USERINFO_URL) {
-        return responseJson({ email: "lobster@nsemclaw.ai" });
+        return responseJson({ email: "lobster@openclaw.ai" });
       }
       if (url === LOAD_PROD) {
         return responseJson({ error: { message: "temporary failure" } }, 503);
@@ -389,7 +389,7 @@ describe("loginGeminiCliOAuth", () => {
         });
       }
       if (url === USERINFO_URL) {
-        return responseJson({ email: "lobster@nsemclaw.ai" });
+        return responseJson({ email: "lobster@openclaw.ai" });
       }
       if ([LOAD_PROD, LOAD_DAILY, LOAD_AUTOPUSH].includes(url)) {
         return responseJson({ error: { message: "unavailable" } }, 503);

@@ -1,15 +1,17 @@
 /**
- * 统一认知核心工具 - 简化版
+ * 统一NSEM认知核心工具 - 简化版
  *
  * 将原来的 20+ actions 简化为 6 个核心操作
- * 所有功能通过 UnifiedNSEM2Core 实现
+ * 所有功能通过 NSEMFusionCore 实现
+ * 
+ * @deprecated 使用 NSEMFusionCore 直接替代
  */
 
 import { Type } from "@sinclair/typebox";
 import type {
-  UnifiedNSEM2Core,
-  MemoryScope,
-} from "../../cognitive-core/mind/nsem/UnifiedNSEM2Core.js";
+  NSEMFusionCore as UnifiedNSEM2Core,
+} from "../../cognitive-core/NSEMFusionCore.js";
+import type { MemoryScope } from "../../cognitive-core/memory/SelectiveMemoryInheritance.js";
 import type { ContentType } from "../../cognitive-core/types/index.js";
 import type { MemoryQuery, QueryStrategy } from "../../cognitive-core/types/index.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
@@ -150,36 +152,16 @@ async function handleMemoryRetrieve(core: UnifiedNSEM2Core, params: Record<strin
     });
   }
 
-  const memoryQuery: MemoryQuery = {
-    intent: query,
-    strategy: strategy as QueryStrategy,
-    constraints: {
-      maxResults,
-      minStrength: minSimilarity,
-    },
-  };
+  // 使用新版 retrieve API - 直接传递 query 字符串
+  const retrieveResult = await core.retrieve(query, { maxResults: maxResults ?? 10 });
+  const items = retrieveResult.items;
 
-  let result: Awaited<ReturnType<UnifiedNSEM2Core["activate"]>>;
-
-  // 如果指定了scope，使用作用域检索
-  if (scopeParam && scopeParam !== "all") {
-    const scopes: MemoryScope[] =
-      scopeParam === "inherited"
-        ? ["inherited"]
-        : scopeParam === "shared"
-          ? ["shared"]
-          : ["personal"];
-    result = await core.retrieveByScope(memoryQuery, scopes);
-  } else {
-    result = await core.activate(memoryQuery);
-  }
-
-  const memories = result.atoms.map((item) => ({
-    id: item.atom.id,
-    content: item.atom.content.slice(0, 200),
-    relevance: Math.round(item.relevance * 100) / 100,
-    activation: Math.round(item.activation * 100) / 100,
-    type: item.atom.contentType,
+  const memories = items.map((item) => ({
+    id: item.id,
+    content: item.content.l1_overview.slice(0, 200),
+    relevance: item.importance,
+    activation: item.hotness,
+    type: item.category,
   }));
 
   return jsonResult({
@@ -190,10 +172,6 @@ async function handleMemoryRetrieve(core: UnifiedNSEM2Core, params: Record<strin
     strategy,
     resultCount: memories.length,
     memories,
-    semantic: {
-      coherence: Math.round(result.semantic.coherence * 100) / 100,
-      coverage: Math.round(result.semantic.coverage * 100) / 100,
-    },
     text: `Retrieved ${memories.length} memories for "${query.slice(0, 50)}"`,
   });
 }
@@ -230,32 +208,32 @@ async function handleMemoryStats(core: UnifiedNSEM2Core) {
       edges: stats.edges,
       fields: stats.fields,
       cache: {
-        hitRate: `${(stats.cache.hitRate * 100).toFixed(1)}%`,
-        hits: stats.cache.hits,
-        misses: stats.cache.misses,
+        hitRate: `${((stats.cache as { hitRate: number }).hitRate * 100).toFixed(1)}%`,
+        hits: (stats.cache as { hits?: number }).hits ?? 0,
+        misses: (stats.cache as { misses?: number }).misses ?? 0,
       },
       storage: {
-        hotCache: stats.storage.hotCacheSize,
-        warmCache: stats.storage.warmCacheSize,
+        hotCache: (stats.storage as { hotCacheSize?: number }).hotCacheSize ?? 0,
+        warmCache: (stats.storage as { warmCacheSize?: number }).warmCacheSize ?? 0,
         totalVectors: stats.storage.totalVectors,
       },
       queue: stats.queue,
       resources: {
-        memory: `${(stats.resources.memory.available / 1024 / 1024 / 1024).toFixed(1)} GB available`,
-        cpu: `${stats.resources.cpu.usagePercent.toFixed(1)}% usage`,
+        memory: `${(((stats.resources as { memory?: { available?: number } }).memory?.available ?? 0) / 1024 / 1024 / 1024).toFixed(1)} GB available`,
+        cpu: `${((stats.resources as { cpu?: { usagePercent?: number } }).cpu?.usagePercent ?? 0).toFixed(1)}% usage`,
       },
     },
     text:
       `Memory stats:\n` +
       `- Working: ${stats.memory.working}\n` +
       `- Short-term: ${stats.memory.shortTerm}\n` +
-      `- Cache hit rate: ${(stats.cache.hitRate * 100).toFixed(1)}%`,
+      `- Cache hit rate: ${((stats.cache as { hitRate: number }).hitRate * 100).toFixed(1)}%`,
   });
 }
 
 async function handleMemoryEvolve(core: UnifiedNSEM2Core) {
   const startTime = Date.now();
-  await core.evolve();
+  await core.evolve("all");
   const durationMs = Date.now() - startTime;
 
   return jsonResult({
@@ -277,11 +255,12 @@ async function handleMemoryConfigure(core: UnifiedNSEM2Core, params: Record<stri
       action: "memory.configure",
       mode: "get",
       config: {
-        tieredStorage: currentConfig.tieredStorage,
-        enhancedRetrieval: currentConfig.enhancedRetrieval,
-        batchLoading: currentConfig.batchLoading,
-        asyncWrite: currentConfig.asyncWrite,
-        modelLoading: currentConfig.modelLoading,
+        // 从 FusionCoreConfig 中提取可用配置
+        storage: (currentConfig as { storage?: unknown }).storage,
+        extraction: (currentConfig as { extraction?: unknown }).extraction,
+        retrieval: (currentConfig as { retrieval?: unknown }).retrieval,
+        evolution: (currentConfig as { evolution?: unknown }).evolution,
+        performance: (currentConfig as { performance?: unknown }).performance,
       },
       text: "Current configuration retrieved",
     });

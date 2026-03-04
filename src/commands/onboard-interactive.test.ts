@@ -22,9 +22,7 @@ vi.mock("../terminal/restore.js", () => ({
 }));
 
 function makeRuntime(): RuntimeEnv {
-  return {
-    log: vi.fn(),
-    error: vi.fn(),
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn() as unknown as RuntimeEnv["exit"],
   };
 }
@@ -47,9 +45,7 @@ describe("runInteractiveOnboarding", () => {
 
   it("restores terminal state without resuming stdin on cancel", async () => {
     const exitError = new Error("exit");
-    const runtime: RuntimeEnv = {
-      log: vi.fn(),
-      error: vi.fn(),
+    const runtime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
       exit: vi.fn(() => {
         throw exitError;
       }) as unknown as RuntimeEnv["exit"],

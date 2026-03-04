@@ -1,7 +1,7 @@
 /**
  * NSEM 2.0 适配器
  *
- * 将 NSEM2Core 适配为 MemorySearchManager 接口
+ * 将 NSEMFusionCore 适配为 MemorySearchManager 接口
  * 使 NSEM 可以无缝替换原有记忆系统
  */
 
@@ -15,7 +15,7 @@ import type {
   MemoryProviderStatus,
 } from "../../memory/types.js";
 import type { NsemclawConfig } from "../../config/config.js";
-import type { NSEM2Core } from "../mind/nsem/NSEM2Core.js";
+import type { NSEMFusionCore } from "../NSEMFusionCore.js";
 import type { MemoryQuery } from "../types/index.js";
 import { resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
 
@@ -41,14 +41,14 @@ export interface NSEM2AdapterConfig {
 /**
  * NSEM 2.0 适配器
  *
- * 实现 MemorySearchManager 接口，包装 NSEM2Core
+ * 实现 MemorySearchManager 接口，包装 NSEMFusionCore
  */
 export class NSEM2Adapter implements MemorySearchManager {
-  private nsem: NSEM2Core;
+  private nsem: NSEMFusionCore;
   private config: NSEM2AdapterConfig;
   private fs: typeof import("node:fs/promises") | null = null;
 
-  constructor(nsem: NSEM2Core, config: NSEM2AdapterConfig = {}) {
+  constructor(nsem: NSEMFusionCore, config: NSEM2AdapterConfig = {}) {
     this.nsem = nsem;
     this.config = {
       defaultStrategy: "exploratory",
@@ -73,13 +73,9 @@ export class NSEM2Adapter implements MemorySearchManager {
     log.debug(`NSEM搜索: "${query}" (maxResults=${maxResults})`);
 
     // 调用 NSEM 激活
-    const activated = await this.nsem.activate({
-      intent: query,
-      strategy: this.config.defaultStrategy!,
-      constraints: {
-        maxResults,
-        minStrength: minRelevance,
-      },
+    const activated = await this.nsem.activate(query, {
+      maxResults,
+      minScore: minRelevance,
     });
 
     // 转换为 MemorySearchResult 格式
@@ -352,7 +348,7 @@ export class NSEM2Adapter implements MemorySearchManager {
   async reindex(onProgress?: (update: MemorySyncProgressUpdate) => Promise<void>): Promise<void> {
     log.info("NSEM重新索引 - 触发进化");
 
-    await this.nsem.evolve();
+    await this.nsem.evolve("all");
 
     onProgress?.({
       completed: 1,
@@ -369,9 +365,10 @@ export class NSEM2Adapter implements MemorySearchManager {
 
     // NSEM中软删除 - 降低相关原子强度
     const atoms = this.nsem.getAtoms();
-    for (const [id, atom] of atoms) {
-      if (atom.spatial.sourceFile === filePath) {
-        atom.strength.current *= 0.1; // 大幅降低强度
+    for (const [, atom] of atoms) {
+      if (atom.spatial?.sourceFile === filePath) {
+        // 大幅降低强度
+        atom.strength.current *= 0.1;
       }
     }
   }
@@ -383,8 +380,8 @@ export class NSEM2Adapter implements MemorySearchManager {
     const atoms = this.nsem.getAtoms();
     const sources = new Set<string>();
 
-    for (const atom of atoms.values()) {
-      if (atom.spatial.sourceFile) {
+    for (const [, atom] of atoms) {
+      if (atom.spatial?.sourceFile) {
         sources.add(atom.spatial.sourceFile);
       }
     }
@@ -422,7 +419,8 @@ export class NSEM2Adapter implements MemorySearchManager {
     error?: string;
   }> {
     try {
-      const embeddingStatus = this.nsem["embedding"]?.getStatus?.();
+      const nsemWithEmbedding = this.nsem as unknown as { embedding?: { getStatus?: () => { embeddingLoaded?: boolean } } };
+      const embeddingStatus = nsemWithEmbedding.embedding?.getStatus?.();
       const state = this.getEcosystemState();
 
       return {
@@ -455,7 +453,8 @@ export class NSEM2Adapter implements MemorySearchManager {
     import("../../memory/types.js").MemoryEmbeddingProbeResult
   > {
     try {
-      const embeddingStatus = this.nsem["embedding"]?.getStatus?.();
+      const nsemWithEmbedding = this.nsem as unknown as { embedding?: { getStatus?: () => { embeddingLoaded?: boolean } } };
+      const embeddingStatus = nsemWithEmbedding.embedding?.getStatus?.();
       return {
         ok: embeddingStatus?.embeddingLoaded ?? false,
       };
@@ -511,34 +510,24 @@ export class NSEM2Adapter implements MemorySearchManager {
    * NSEM特有：手动触发进化
    */
   async evolve(): Promise<void> {
-    await this.nsem.evolve();
+    await this.nsem.evolve("all");
   }
 
   // ========================================================================
   // 私有方法
   // ========================================================================
 
-  private toMemorySearchResults(activated: {
-    atoms: Array<{
-      atom: {
-        id: string;
-        content: string;
-        spatial: { sourceFile?: string; lineRange?: [number, number] };
-        contentType: string;
-      };
-      relevance: number;
-    }>;
-  }): MemorySearchResult[] {
-    return activated.atoms.map((item) => ({
-      path: item.atom.spatial.sourceFile || `nsem://${item.atom.id.slice(0, 8)}`,
+  private toMemorySearchResults(activated: import("../NSEMFusionCore.js").FusionMemoryItem[]): MemorySearchResult[] {
+    return activated.map((item) => ({
+      path: item.metadata.source || `nsem://${item.id.slice(0, 8)}`,
       source: "nsem" as any,
-      snippet: item.atom.content.slice(0, 200),
-      score: item.relevance,
-      startLine: item.atom.spatial.lineRange?.[0] ?? 0,
-      endLine: item.atom.spatial.lineRange?.[1] ?? 0,
+      snippet: item.content.l1_overview.slice(0, 200),
+      score: item.importance,
+      startLine: 0,
+      endLine: item.content.l1_overview.split("\n").length,
       metadata: {
-        nsemAtomId: item.atom.id,
-        nsemAtomType: item.atom.contentType,
+        nsemAtomId: item.id,
+        nsemAtomType: item.category,
       },
     }));
   }

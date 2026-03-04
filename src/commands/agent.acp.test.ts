@@ -14,9 +14,7 @@ const loadConfigSpy = vi.spyOn(configModule, "loadConfig");
 const runEmbeddedPiAgentSpy = vi.spyOn(embeddedModule, "runEmbeddedPiAgent");
 const getAcpSessionManagerSpy = vi.spyOn(acpManagerModule, "getAcpSessionManager");
 
-const runtime: RuntimeEnv = {
-  log: vi.fn(),
-  error: vi.fn(),
+const runtime: RuntimeEnv = { log: vi.fn(), warn: vi.fn(), error: vi.fn(),
   exit: vi.fn(() => {
     throw new Error("exit");
   }),

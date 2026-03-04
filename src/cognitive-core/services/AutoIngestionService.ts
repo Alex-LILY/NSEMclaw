@@ -9,10 +9,10 @@
  */
 
 import { createSubsystemLogger } from "../../logging/subsystem.js";
-import type { UnifiedNSEM2Core } from "../mind/nsem/UnifiedNSEM2Core.js";
+import type { NSEMFusionCore } from "../NSEMFusionCore.js";
 import type { MemoryScope, ContentType } from "../types/index.js";
 
-/** 将通用 MemoryScope 转换为 UnifiedNSEM2Core MemoryScope */
+/** 将通用 MemoryScope 转换为 NSEMFusionCore MemoryScope */
 function toCoreMemoryScope(scope: MemoryScope): "personal" | "shared" | "inherited" | "all" {
   const scopeMap: Record<MemoryScope, "personal" | "shared" | "inherited" | "all"> = {
     local: "personal",
@@ -182,13 +182,13 @@ export const DEFAULT_AUTO_INGESTION_RULES: AutoIngestionRule[] = [
 // ============================================================================
 
 export class AutoIngestionService {
-  private core: UnifiedNSEM2Core;
+  private core: NSEMFusionCore;
   private rules: Map<string, AutoIngestionRule> = new Map();
   private activeSessions: Map<string, ConversationSession> = new Map();
   private ingestionHistory: Map<string, IngestionResult[]> = new Map();
   private _isRunning = false;
 
-  constructor(core: UnifiedNSEM2Core) {
+  constructor(core: NSEMFusionCore) {
     this.core = core;
 
     // 加载默认规则
@@ -617,19 +617,13 @@ export class AutoIngestionService {
 
   private async checkDuplicate(memory: ExtractedMemory, rule: AutoIngestionRule): Promise<boolean> {
     // 使用核心检索检查相似内容
-    const query: import("../types/index.js").MemoryQuery = {
-      intent: memory.content,
-      strategy: "precise",
-      constraints: {
-        maxResults: 5,
-        minStrength: rule.ingestion.dedupThreshold ?? 0.85,
-      },
-    };
-
-    const result = await this.core.activate(query);
+    const result = await this.core.activate(memory.content, {
+      maxResults: 5,
+      minScore: rule.ingestion.dedupThreshold ?? 0.85,
+    });
     return (
-      result.atoms.length > 0 &&
-      result.atoms[0].relevance >= (rule.ingestion.dedupThreshold ?? 0.85)
+      result.length > 0 &&
+      (result[0].importance ?? 0) >= (rule.ingestion.dedupThreshold ?? 0.85)
     );
   }
 
@@ -702,6 +696,6 @@ export class AutoIngestionService {
 // 工厂函数
 // ============================================================================
 
-export function createAutoIngestionService(core: UnifiedNSEM2Core): AutoIngestionService {
+export function createAutoIngestionService(core: NSEMFusionCore): AutoIngestionService {
   return new AutoIngestionService(core);
 }

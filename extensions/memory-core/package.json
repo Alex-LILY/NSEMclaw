@@ -1,6 +1,6 @@
 {
   "name": "@nsemclaw/memory-core",
-  "version": "2026.2.27",
+  "version": "2026.3.5",
   "private": true,
   "description": "Nsemclaw core memory search plugin",
   "type": "module",

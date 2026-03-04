@@ -34,9 +34,7 @@ describe("onboard-hooks", () => {
     }),
   });
 
-  const createMockRuntime = (): RuntimeEnv => ({
-    log: vi.fn(),
-    error: vi.fn(),
+  const createMockRuntime = (): RuntimeEnv => ({ log: vi.fn(), warn: vi.fn(), error: vi.fn(),
     exit: vi.fn(),
   });
 

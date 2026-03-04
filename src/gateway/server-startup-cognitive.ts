@@ -1,5 +1,5 @@
 /**
- * 网关启动时自动启动认知核心记忆系统
+ * 网关启动时自动启动NSEM认知核心记忆系统
  * 支持根据系统资源自动决策加载策略
  *
  * 使用 UnifiedSessionIngestionManager 与 Builtin Memory 共享事件驱动的会话摄入系统
@@ -10,7 +10,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { listAgentIds } from "../agents/agent-scope.js";
 import type { NsemclawConfig } from "../config/config.js";
-import { getNSEM2Core } from "../cognitive-core/mind/nsem/NSEM2Core.js";
+import { getNSEMFusionCore } from "../cognitive-core/NSEMFusionCore.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
@@ -24,7 +24,7 @@ import { NSEM_PREDEFINED_MODELS, isModelValid, downloadFile } from "../cognitive
 
 const log = createSubsystemLogger("cognitive-core");
 
-const COGNITIVE_CORE_INSTANCES = new Map<string, ReturnType<typeof getNSEM2Core>>();
+const COGNITIVE_CORE_INSTANCES = new Map<string, ReturnType<typeof getNSEMFusionCore>>();
 const SESSION_INGESTION_MANAGERS = new Map<string, ReturnType<typeof getUnifiedSessionIngestionManager>>();
 
 /**
@@ -139,7 +139,7 @@ function resolveNSEMConfig(cfg: NsemclawConfig, agentId: string) {
  * 创建 NSEM 会话消费者
  */
 function createNSEMConsumer(
-  core: Awaited<ReturnType<typeof getNSEM2Core>>,
+  core: Awaited<ReturnType<typeof getNSEMFusionCore>>,
   agentId: string,
 ): SessionConsumer {
   return {
@@ -167,7 +167,7 @@ function createNSEMConsumer(
 
     async syncFull(progress?: (update: MemorySyncProgressUpdate) => void) {
       // 触发全量重新索引
-      await core.evolve();
+      await core.evolve("all");
       progress?.({ completed: 1, total: 1, label: "Evolution complete" });
     },
   };
@@ -180,7 +180,7 @@ export async function startGatewayCognitiveCore(params: {
   const agentIds = listAgentIds(params.cfg);
   const systemMemoryGB = (totalmem() / 1024 / 1024 / 1024).toFixed(1);
 
-  params.log.info?.(`🧠 认知核心自动启动策略 (系统内存: ${systemMemoryGB}GB)`);
+  params.log.info?.(`🧠 NSEM认知核心自动启动策略 (系统内存: ${systemMemoryGB}GB)`);
 
   // 确保所有 NSEM 模型文件存在（如果不存在则自动下载）
   await ensureNSEMModels(params.log);
@@ -207,14 +207,21 @@ export async function startGatewayCognitiveCore(params: {
     params.log.info?.(`   - agent "${agentId}": 模式=${resourceMode}, 模型=[${models.join(", ")}]`);
 
     try {
-      // 启动认知核心
-      const core = await getNSEM2Core(params.cfg, agentId, memoryConfig, {
-        resourceMode,
-        autoDownloadModels: nsemConfig?.autoDownloadModels !== false,
+      // 启动NSEM认知核心 (getNSEMFusionCore 内部已调用 initialize，无需再调用 start)
+      const core = await getNSEMFusionCore(agentId, {
+        storage: {
+          mode: "fusion",
+        },
+        embedding: {
+          provider: "smart",
+          modelName: memoryConfig.model,
+        },
+        performance: {
+          maxConcurrentOperations: 5,
+          cacheSize: 1000,
+          prefetchEnabled: false,
+        },
       });
-
-      // 启动记忆系统
-      await core.start();
       
       // 注册到 UnifiedNSEM2Core 工具系统，使 AI 可以访问
       registerCoreInstance(agentId, core);
@@ -291,10 +298,10 @@ export async function startGatewayCognitiveCore(params: {
 
       COGNITIVE_CORE_INSTANCES.set(agentId, Promise.resolve(core));
 
-      params.log.info?.(`     ✅ 认知核心已启动`);
+      params.log.info?.(`     ✅ NSEM认知核心已启动`);
 
-      const stats = core.getStats();
-      params.log.info?.(`        原子: ${stats.totalAtoms}, 边: ${stats.totalEdges}, 场: ${stats.totalFields}`);
+      const status = core.getStatus();
+      params.log.info?.(`        记忆: ${status.storage.totalMemories}, 工作记忆: ${status.storage.workingCount}, 向量: ${status.storage.vectorCount}`);
 
     } catch (err) {
       params.log.warn(`     ⚠️  启动失败: ${String(err)}`);
@@ -302,7 +309,7 @@ export async function startGatewayCognitiveCore(params: {
   }
 }
 
-export function getCognitiveCoreInstance(agentId: string): ReturnType<typeof getNSEM2Core> | undefined {
+export function getCognitiveCoreInstance(agentId: string): ReturnType<typeof getNSEMFusionCore> | undefined {
   return COGNITIVE_CORE_INSTANCES.get(agentId);
 }
 
@@ -311,10 +318,10 @@ export function listCognitiveCoreInstances(): string[] {
 }
 
 /**
- * 停止所有认知核心实例
+ * 停止所有NSEM认知核心实例
  */
 export async function stopGatewayCognitiveCore(): Promise<void> {
-  log.info("停止认知核心...");
+  log.info("停止NSEM认知核心...");
 
   // 停止所有会话摄入管理器
   for (const [agentId, manager] of SESSION_INGESTION_MANAGERS) {
@@ -323,7 +330,7 @@ export async function stopGatewayCognitiveCore(): Promise<void> {
   }
   SESSION_INGESTION_MANAGERS.clear();
 
-  // 停止所有认知核心
+  // 停止所有NSEM认知核心
   for (const [agentId, corePromise] of COGNITIVE_CORE_INSTANCES) {
     try {
       const core = await corePromise;
@@ -338,12 +345,12 @@ export async function stopGatewayCognitiveCore(): Promise<void> {
       unregisterCoreInstance(agentId);
 
       await core.stop();
-      log.debug(`已停止认知核心 (agent: ${agentId})`);
+      log.debug(`已停止NSEM认知核心 (agent: ${agentId})`);
     } catch (err) {
-      log.warn(`停止认知核心失败 (agent: ${agentId}): ${err}`);
+      log.warn(`停止NSEM认知核心失败 (agent: ${agentId}): ${err}`);
     }
   }
   COGNITIVE_CORE_INSTANCES.clear();
 
-  log.info("所有认知核心已停止");
+  log.info("所有NSEM认知核心已停止");
 }

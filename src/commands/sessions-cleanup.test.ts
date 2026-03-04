@@ -39,9 +39,7 @@ import { sessionsCleanupCommand } from "./sessions-cleanup.js";
 function makeRuntime(): { runtime: RuntimeEnv; logs: string[] } {
   const logs: string[] = [];
   return {
-    runtime: {
-      log: (msg: unknown) => logs.push(String(msg)),
-      error: () => {},
+    runtime: { log: (msg: unknown) => logs.push(String(msg)), warn: vi.fn(), error: () => {},
       exit: () => {},
     },
     logs,

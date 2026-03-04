@@ -265,6 +265,7 @@ vi.mock("../telegram/token.js", () => ({
 vi.mock("../runtime.js", () => ({
   defaultRuntime: {
     log: () => {},
+    warn: () => {},
     error: () => {},
     exit: () => {
       throw new Error("exit");
@@ -321,6 +322,7 @@ export function mockDoctorConfigSnapshot(
 export function createDoctorRuntime() {
   return {
     log: vi.fn() as unknown as MockFn,
+    warn: vi.fn() as unknown as MockFn,
     error: vi.fn() as unknown as MockFn,
     exit: vi.fn() as unknown as MockFn,
   };
@@ -328,7 +330,7 @@ export function createDoctorRuntime() {
 
 export async function arrangeLegacyStateMigrationTest(): Promise<{
   doctorCommand: unknown;
-  runtime: { log: MockFn; error: MockFn; exit: MockFn };
+  runtime: { log: MockFn; warn: MockFn; error: MockFn; exit: MockFn };
   detectLegacyStateMigrations: MockFn;
   runLegacyStateMigrations: MockFn;
 }> {

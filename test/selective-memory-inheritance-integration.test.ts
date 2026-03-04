@@ -1,6 +1,6 @@
 /**
  * SelectiveMemoryInheritance 集成测试
- * 验证认知核心工具与三层记忆架构的集成
+ * 验证NSEM认知核心工具与三层记忆架构的集成
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
